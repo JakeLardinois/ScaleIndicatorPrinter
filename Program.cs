@@ -59,8 +59,9 @@ namespace ScaleIndicatorPrinter
             if (objStrBldr.Length > 0)//When the stringbuilder was empty, an error was thrown by ToCharArray()
             {
                 //var objLabel = new Label(new string[] { "HelloLabel", "HelloBarcode" });
-                var objParameters = objStrBldr.ToString().Split(new char[] { '\r' });
-                var objLabel = new Label(new string[] { objParameters[0], objParameters[1] });
+                var objIndicatorData = new IndicatorData(objStrBldr.ToString());
+
+                var objLabel = new Label(new string[] { objIndicatorData.GrossWeight.ToString(), objIndicatorData.NetWeight.ToString() });
 
                 //var newByteArray = Tools.Chars2Bytes(objStrBldr.ToString().ToCharArray());
                 var newByteArray = Tools.Chars2Bytes(objLabel.LabelText.ToCharArray());

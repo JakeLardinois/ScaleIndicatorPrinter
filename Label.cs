@@ -19,6 +19,8 @@ namespace ScaleIndicatorPrinter
         public Label(string[] strParams)
         {
             StringBuilder objStrBldr = new StringBuilder(LabelFormat);
+            //Found out that the .Net Micro Framework StringBuilder will throw an 'OutOfRangeException' when the .Replace() method is called and the string you are replacing
+            //is shorter than the string that is replacing it...
             //objStrBldr.Replace("~p0", "do0");
             //objStrBldr.Replace("~p1", "do1");
 
