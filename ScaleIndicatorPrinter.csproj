@@ -8,10 +8,11 @@
     <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{943CDDF5-32EE-4069-9699-7AFF2F170338}</ProjectGuid>
-    <TargetFrameworkVersion>v4.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.3</TargetFrameworkVersion>
     <NetMfTargetsBaseDir Condition="'$(NetMfTargetsBaseDir)'==''">$(MSBuildExtensionsPath32)\Microsoft\.NET Micro Framework\</NetMfTargetsBaseDir>
     <DeployDevice>NetduinoPlus</DeployDevice>
     <DeployTransport>USB</DeployTransport>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,8 +33,14 @@
   </PropertyGroup>
   <Import Project="$(NetMfTargetsBaseDir)$(TargetFrameworkVersion)\CSharp.Targets" />
   <ItemGroup>
-    <Compile Include="IndicatorData.cs" />
-    <Compile Include="Label.cs" />
+    <Compile Include="Models\IndicatorData.cs" />
+    <Compile Include="Models\Label.cs" />
+    <Compile Include="Models\MCP23017.cs" />
+    <Compile Include="Models\MySerialPort.cs" />
+    <Compile Include="Models\NetduinoI2CDevice.cs" />
+    <Compile Include="Models\RGBLCDShield.cs" />
+    <Compile Include="Models\Settings.cs" />
+    <Compile Include="Models\SharedEnums.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
@@ -44,8 +51,18 @@
     <Reference Include="Microsoft.SPOT.Native" />
     <Reference Include="Microsoft.SPOT.Net" />
     <Reference Include="SecretLabs.NETMF.Hardware" />
-    <Reference Include="SecretLabs.NETMF.Hardware.NetduinoPlus" />
+    <Reference Include="SecretLabs.NETMF.Hardware.NetduinoPlus, Version=4.3.1.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="System" />
-    <Reference Include="Toolbox.NETMF.Core, Version=4.2.0.0, Culture=neutral, processorArchitecture=MSIL" />
+    <Reference Include="System.IO" />
+    <Reference Include="Toolbox.NETMF.Core, Version=4.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\NetMF.Toolbox\Release (4.3)\Toolbox.NETMF.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NetMf.CommonExtensions\NetMf.CommonExtensions.csproj">
+      <Project>{58F72289-F396-4CCA-8120-B7179C05FF99}</Project>
+      <Name>NetMf.CommonExtensions</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>
