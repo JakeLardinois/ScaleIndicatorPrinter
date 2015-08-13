@@ -53,6 +53,8 @@ namespace ScaleIndicatorPrinter.Models
             i2cDevice.WriteRegister((byte)Command.MCP23017_IODIRA, 0xff);
             i2cDevice.WriteRegister((byte)Command.MCP23017_IODIRB, 0xff);
 
+
+            //The below were added in order to read the interrupt from the chip. I know that the last one was required, but don't know which of the remaining 3 are necessary...
             //i2cDevice configuration register
             // mirror interrupts, disable sequential mode
             i2cDevice.WriteRegister((byte)Command.MCP23017_IOCONA, 0x60); // 0b01100000 (binary) = ox60 (hexadecimal)
@@ -63,7 +65,8 @@ namespace ScaleIndicatorPrinter.Models
             // invert polarity
             i2cDevice.WriteRegister((byte)Command.MCP23017_IPOLA, 0xff); // invert polarity of signal - both ports
 
-            // enable all interrupts
+
+            // enable all interrupts. This one is what needs to be enabled for the data to flow to the pin...
             i2cDevice.WriteRegister((byte) Command.MCP23017_GPINTENA, 0xff);
             //i2cDevice.WriteRegister((byte)0x12, 0xff);
         }

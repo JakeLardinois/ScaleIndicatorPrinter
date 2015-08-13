@@ -123,11 +123,10 @@ namespace ScaleIndicatorPrinter
             // Set the LED to its new state.
             //onboardLED.Write(!onboardLED.Read());
             
-            var ButtonPressed = mcp23017.ReadGpioAB();
+            
             //var blah2 = mcp23017.DigitalRead((byte)ScaleIndicatorPrinter.Models.MCP23017.Command.MCP23017_INTCAPA);
 
-            /*For some reason this event returns 34304 (0x8600 aka 8600 hex) multiple times when a button gets pressed. If you wait a little bit in the debugger, then the variable actually eventually changes to a button's value.
-             */
+            
             //var strHexValue = Tools.Dec2Hex(ButtonPressed, 2); //convert the ushort to hexadecimal string
             //var strButtonHexValue = strHexValue.Substring(strHexValue.Length - 2, 2); //the button values are the last 2 characters of the hex string
             //var intButtonValue = Tools.Dec2Hex(Int32.Parse(strButtonHexValue));
@@ -157,6 +156,12 @@ namespace ScaleIndicatorPrinter
             //        break;
             //}
 
+            /*For some reason this event returns data multiple times when a button gets pressed. If you wait a little bit in the debugger, then the variable actually eventually changes to a value that contains a button's value.
+             * What I first observed was that a number such as 34304 was returned multiple times before a number such as 34305 would be returned. 34304=0x8600=NoButton, 34305=0x8601=SelectButton (which was indicated as 0x01 in the 
+             * Select button Enum). So I initially designed the loop to check for 34304, 34305, 34306, etc. to determine which button was pressed.  However, when I plugged in a different LED Shield, I noticed that the numbers changed
+             * 
+             */
+            var ButtonPressed = mcp23017.ReadGpioAB();
 
             var InterruptBits = BitConverter.GetBytes(ButtonPressed);
             switch (InterruptBits[0]) //the 0 value contains the button that was pressed...
