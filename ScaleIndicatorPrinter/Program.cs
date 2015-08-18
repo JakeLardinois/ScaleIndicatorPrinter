@@ -10,6 +10,9 @@ using SecretLabs.NETMF.Hardware.NetduinoPlus;
 using ScaleIndicatorPrinter.Models;
 using System.IO.Ports;
 using Toolbox.NETMF.NET;
+using System.Collections;
+using Json.NETMF;
+using NetduinoRGBLCDShield;
 
 
 namespace ScaleIndicatorPrinter
@@ -111,19 +114,19 @@ namespace ScaleIndicatorPrinter
             var InterruptBits = BitConverter.GetBytes(ButtonPressed);
             switch (InterruptBits[0]) //the 0 value contains the button that was pressed...
             {
-                case (int)ScaleIndicatorPrinter.Models.Button.Left:
+                case (int)NetduinoRGBLCDShield.Button.Left:
                     --mintMenuSelection;
                     DisplayInformation();
                     break;
-                case (int)ScaleIndicatorPrinter.Models.Button.Right:
+                case (int)NetduinoRGBLCDShield.Button.Right:
                     ++mintMenuSelection;
                     DisplayInformation();
                     break;
-                case (int)ScaleIndicatorPrinter.Models.Button.Up:
+                case (int)NetduinoRGBLCDShield.Button.Up:
                     break;
-                case (int)ScaleIndicatorPrinter.Models.Button.Down:
+                case (int)NetduinoRGBLCDShield.Button.Down:
                     break;
-                case (int)ScaleIndicatorPrinter.Models.Button.Select:
+                case (int)NetduinoRGBLCDShield.Button.Select:
                     PerformAction();
                     break;
             }
@@ -217,9 +220,11 @@ namespace ScaleIndicatorPrinter
 
                     if (objIndicatorData.HasValidDataString)
                     {
-                        //A new thread must be started in order for the WebGet function to work properly
-                        var someThread = new Thread(delegate() { WebGet(objIndicatorData); });
-                        someThread.Start();
+                        /*A new thread must be started in order for the WebGet function to work properly 
+                         * http://www.codeproject.com/Articles/795829/Multithreading-with-Netduino-and-NET-Microframewor
+                         * https://www.youtube.com/watch?v=YZOrORB88-s */
+                        var DataRequestThread = new Thread(delegate() { WebGet(objIndicatorData); });
+                        DataRequestThread.Start();
                     }
                     break;
                 case RecievedData.ScannerJobAndSuffix:
@@ -238,10 +243,14 @@ namespace ScaleIndicatorPrinter
         public static void WebGet(IndicatorData objIndicatorData)
         {
             //var URL = Settings.ShopTrakTransactionsURL.SetParameters(new string[] { Settings.Job, Settings.Suffix.ToString(), Settings.Operation.ToString() });
-            var URL = @"http://10.1.0.55:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053313&Suffix=00&Operation=60";
+            var URL = @"http://10.1.0.55:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053094&Suffix=00&Operation=10";
+            var objURI = new Uri(URL);
+            
+            var webClient = new HTTP_Client(new IntegratedSocket(objURI.Host, (ushort)objURI.Port));
+            var response = webClient.Get(objURI.AbsolutePath);
 
-            var webClient = new HTTP_Client(new IntegratedSocket("10.1.0.55", 6156));
-            var response = webClient.Get("/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053313&Suffix=00&Operation=60");
+            ArrayList DataList = JsonSerializer.DeserializeString(response.ResponseBody) as ArrayList;
+            
 
             var objLabel = new Label(new string[] { objIndicatorData.GrossWeight.ToString(), objIndicatorData.NetWeight.ToString() });
             mPrinterSerialPort.WriteString(objLabel.LabelText);

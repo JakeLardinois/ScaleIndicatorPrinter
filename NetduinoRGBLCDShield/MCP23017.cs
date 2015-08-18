@@ -1,7 +1,7 @@
 using System;
 using Microsoft.SPOT;
 
-namespace ScaleIndicatorPrinter.Models
+namespace NetduinoRGBLCDShield
 {
     public class MCP23017
     {
@@ -67,7 +67,7 @@ namespace ScaleIndicatorPrinter.Models
 
 
             // enable all interrupts. This one is what needs to be enabled for the data to flow to the pin...
-            i2cDevice.WriteRegister((byte) Command.MCP23017_GPINTENA, 0xff);
+            i2cDevice.WriteRegister((byte)Command.MCP23017_GPINTENA, 0xff);
             //i2cDevice.WriteRegister((byte)0x12, 0xff);
         }
 

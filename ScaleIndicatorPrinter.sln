@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.40629.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScaleIndicatorPrinter", "ScaleIndicatorPrinter\ScaleIndicatorPrinter.csproj", "{A45D44B7-EACC-428C-8D75-E24201E704FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetduinoRGBLCDShield", "NetduinoRGBLCDShield\NetduinoRGBLCDShield.csproj", "{0ECB7448-96F9-4D13-A200-04BD5BF3AA7E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMf.CommonExtensions", "NetMf.CommonExtensions\NetMf.CommonExtensions.csproj", "{58F72289-F396-4CCA-8120-B7179C05FF99}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A45D44B7-EACC-428C-8D75-E24201E704FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A45D44B7-EACC-428C-8D75-E24201E704FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A45D44B7-EACC-428C-8D75-E24201E704FD}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{A45D44B7-EACC-428C-8D75-E24201E704FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A45D44B7-EACC-428C-8D75-E24201E704FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A45D44B7-EACC-428C-8D75-E24201E704FD}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{0ECB7448-96F9-4D13-A200-04BD5BF3AA7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0ECB7448-96F9-4D13-A200-04BD5BF3AA7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0ECB7448-96F9-4D13-A200-04BD5BF3AA7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0ECB7448-96F9-4D13-A200-04BD5BF3AA7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58F72289-F396-4CCA-8120-B7179C05FF99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58F72289-F396-4CCA-8120-B7179C05FF99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58F72289-F396-4CCA-8120-B7179C05FF99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58F72289-F396-4CCA-8120-B7179C05FF99}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

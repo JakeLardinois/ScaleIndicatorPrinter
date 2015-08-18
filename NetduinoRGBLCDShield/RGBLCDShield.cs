@@ -2,7 +2,7 @@ using Microsoft.SPOT;
 using System;
 using System.Threading;
 
-namespace ScaleIndicatorPrinter.Models
+namespace NetduinoRGBLCDShield
 {
     public enum BacklightColor : byte
     {

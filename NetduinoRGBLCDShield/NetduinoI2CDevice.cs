@@ -1,7 +1,7 @@
 using Microsoft.SPOT.Hardware;
 using System;
 
-namespace ScaleIndicatorPrinter.Models
+namespace NetduinoRGBLCDShield
 {
     public class NetduinoI2CDevice
     {
