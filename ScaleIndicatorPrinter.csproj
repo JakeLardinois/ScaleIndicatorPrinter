@@ -36,6 +36,7 @@
     <Compile Include="Models\IndicatorData.cs" />
     <Compile Include="Models\Label.cs" />
     <Compile Include="Models\MCP23017.cs" />
+    <Compile Include="Models\MyExtensionMethods.cs" />
     <Compile Include="Models\MySerialPort.cs" />
     <Compile Include="Models\NetduinoI2CDevice.cs" />
     <Compile Include="Models\RGBLCDShield.cs" />
@@ -49,7 +50,6 @@
     <Reference Include="Microsoft.SPOT.Hardware.PWM" />
     <Reference Include="Microsoft.SPOT.Hardware.SerialPort" />
     <Reference Include="Microsoft.SPOT.Native" />
-    <Reference Include="Microsoft.SPOT.Net" />
     <Reference Include="SecretLabs.NETMF.Hardware" />
     <Reference Include="SecretLabs.NETMF.Hardware.NetduinoPlus, Version=4.3.1.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="System" />
@@ -57,6 +57,15 @@
     <Reference Include="Toolbox.NETMF.Core, Version=4.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\NetMF.Toolbox\Release (4.3)\Toolbox.NETMF.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Toolbox.NETMF.NET.Core">
+      <HintPath>..\..\NetMF.Toolbox\Release (4.3)\Toolbox.NETMF.NET.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Toolbox.NETMF.NET.HTTP_Client">
+      <HintPath>..\..\NetMF.Toolbox\Release (4.3)\Toolbox.NETMF.NET.HTTP_Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Toolbox.NETMF.NET.Integrated">
+      <HintPath>..\..\NetMF.Toolbox\Release (4.3)\Toolbox.NETMF.NET.Integrated.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

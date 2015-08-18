@@ -19,11 +19,48 @@ namespace ScaleIndicatorPrinter.Models
         private static string mJobNumber { get; set; }
         public static string JobNumber { get { return mJobNumber; } }
 
+        public static string Job { 
+            get {
+                if (mJobNumber.IndexOf('-') != -1)
+                {
+                    var intPlaceholder = mJobNumber.LastIndexOf('-');
+                    return mJobNumber.Substring(0, intPlaceholder);
+                }
+                else
+                    return "B";
+            } 
+        }
+
+        public static int Suffix {
+            get
+            {
+                try
+                {
+                    var intPlaceholder = mJobNumber.LastIndexOf('-');
+                    return int.Parse(mJobNumber.Substring(intPlaceholder + 1, mJobNumber.Length - intPlaceholder - 1));
+                }
+                catch
+                {
+                    return int.MaxValue;
+                }
+            } 
+        }
+
         private static string mOperationNumber { get; set; }
-        public static string OperationNumber { get { return mOperationNumber; } }
+        public static int Operation { 
+            get {
+                try {
+                    return int.Parse(mOperationNumber);
+                }
+                catch {
+                    return int.MaxValue;
+                }
+                 
+            } 
+        }
 
         private static string mShopTrakTransactionsURL { get; set; }
-        public static string ShopTrakTransactionsURL { get { return mOperationNumber; } }
+        public static string ShopTrakTransactionsURL { get { return mShopTrakTransactionsURL; } }
 
 
         public Settings(DirectoryInfo objDirectory )

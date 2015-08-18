@@ -1,13 +1,22 @@
 using System;
 using Microsoft.SPOT;
 
-using NetMf.CommonExtensions;
 
 namespace ScaleIndicatorPrinter.Models
 {
     public class Label
     {
         public static string LabelFormat { get; set; }
+        public static string SampleLabel
+        {
+            get
+            {
+                return "N\r\n" +
+                    "A50,100,0,5,1,1,N,\"EXAMPLE 1\"\r\n" +
+                    "B50,150,0,3,3,7,200,B,\"EXAMPLE 1\"\r\n" +
+                    "P1\r\n";
+            }
+        }
 
         private string mLabelText { get; set; }
         public string LabelText { get { return mLabelText; } }
@@ -15,10 +24,7 @@ namespace ScaleIndicatorPrinter.Models
 
         public Label(string[] strParams)
         {
-            mLabelText = LabelFormat;
-
-            for (int intCounter = strParams.Length - 1; intCounter > -1; intCounter--)
-                mLabelText = mLabelText.Replace("~p" + intCounter, strParams[intCounter]);
+            mLabelText = LabelFormat.SetParameters(strParams);
         }
 
 

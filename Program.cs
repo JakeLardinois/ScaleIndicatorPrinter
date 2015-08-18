@@ -9,7 +9,7 @@ using SecretLabs.NETMF.Hardware.NetduinoPlus;
 
 using ScaleIndicatorPrinter.Models;
 using System.IO.Ports;
-using Toolbox.NETMF;
+using Toolbox.NETMF.NET;
 
 
 namespace ScaleIndicatorPrinter
@@ -36,7 +36,7 @@ namespace ScaleIndicatorPrinter
         private static int mintMenuSelection { get; set; }
         private static int mMenuSelection { get { return System.Math.Abs(mintMenuSelection); } }
 
-        private static InterruptPort btnBoard { get; set; }
+        //private static InterruptPort btnBoard { get; set; }
         private static OutputPort onboardLED = new OutputPort(Pins.ONBOARD_LED, false);
 
         private static InterruptPort btnShield { get; set; }
@@ -44,7 +44,7 @@ namespace ScaleIndicatorPrinter
         public static void Main()
         {
             // initialize the serial port for COM1 (using D0 & D1) and COM2 (using D2 & D3)
-            mIndicatorScannerSerialPort = new MySerialPort(SerialPorts.COM2, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
+            mIndicatorScannerSerialPort = new MySerialPort(SerialPorts.COM1, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
             mPrinterSerialPort = new MySerialPort(SerialPorts.COM3, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
 
             // open the serial-ports, so we can send & receive data
@@ -54,10 +54,10 @@ namespace ScaleIndicatorPrinter
             // add an event-handler for handling incoming data
             mIndicatorScannerSerialPort.DataReceived += new SerialDataReceivedEventHandler(IndicatorScannerSerialPort_DataReceived);
 
-            //InterruptEdgeLevelLow only fires the event the first time that the button descends
-            btnBoard = new InterruptPort(Pins.ONBOARD_SW1, false, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeHigh);
-            // Create an event handler for the button
-            btnBoard.OnInterrupt += new NativeEventHandler(btnBoard_OnInterrupt);
+            ////InterruptEdgeLevelLow only fires the event the first time that the button descends
+            //btnBoard = new InterruptPort(Pins.ONBOARD_SW1, false, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeHigh);
+            //// Create an event handler for the button
+            //btnBoard.OnInterrupt += new NativeEventHandler(btnBoard_OnInterrupt);
 
             mSettings = new Settings(new System.IO.DirectoryInfo(mRootDirectory));
 
@@ -90,78 +90,23 @@ namespace ScaleIndicatorPrinter
             // Bind the interrupt handler to the pin's interrupt event.
             btnShield.OnInterrupt += new NativeEventHandler(btnShield_OnInterrupt);
 
-
             // we are done
             Thread.Sleep(Timeout.Infinite);
-
-            //while (true) //Thread.Sleep(Timeout.Infinite);
-            //{
-            //    ScaleIndicatorPrinter.Models.Button Button = lcdBoard.ReadButtons();
-
-            //    switch (Button)
-            //    {
-            //        case Models.Button.Left:
-            //            --mintMenuSelection;
-            //            Thread.Sleep(100); //I had to add a pause here or else the loop would execute multiple times during a button press...
-            //            DisplayInformation();
-            //            break;
-            //        case Models.Button.Right:
-            //            ++mintMenuSelection;
-            //            Thread.Sleep(100);
-            //            DisplayInformation();
-            //            break;
-            //        case Models.Button.Select:
-            //            Thread.Sleep(100);
-            //            PerformAction();
-            //            break;
-            //    }
-            //}
         }
 
         public static void btnShield_OnInterrupt(UInt32 data1, UInt32 data2, DateTime time)
         {
             // Set the LED to its new state.
             //onboardLED.Write(!onboardLED.Read());
-            
-            
-            //var blah2 = mcp23017.DigitalRead((byte)ScaleIndicatorPrinter.Models.MCP23017.Command.MCP23017_INTCAPA);
-
-            
-            //var strHexValue = Tools.Dec2Hex(ButtonPressed, 2); //convert the ushort to hexadecimal string
-            //var strButtonHexValue = strHexValue.Substring(strHexValue.Length - 2, 2); //the button values are the last 2 characters of the hex string
-            //var intButtonValue = Tools.Dec2Hex(Int32.Parse(strButtonHexValue));
-            //var blah = (int)ScaleIndicatorPrinter.Models.Button.Left;
-
-            
-            //switch (ButtonPressed)
-            //{
-            //    case 34304:// 0x8600
-            //        break;
-            //    case 34305:// 0x8601, which corresponds to 0x01 == Select
-
-            //        break;
-            //    case 34306:// 0x8602, which corresponds to 0x02 == Right
-            //        ++mintMenuSelection;
-            //        DisplayInformation();
-            //        break;
-            //    case 34308:// 0x8604, which corresponds to 0x04 == Down
-
-            //        break;
-            //    case 34320:// 0x8610, which corresponds to 0x10 == Left
-            //        --mintMenuSelection;
-            //        DisplayInformation();
-            //        break;
-            //    case 34312:// 0x8608, which corresponds to 0x08 == Up
-
-            //        break;
-            //}
 
             /*For some reason this event returns data multiple times when a button gets pressed. If you wait a little bit in the debugger, then the variable actually eventually changes to a value that contains a button's value.
              * What I first observed was that a number such as 34304 was returned multiple times before a number such as 34305 would be returned. 34304=0x8600=NoButton, 34305=0x8601=SelectButton (which was indicated as 0x01 in the 
              * Select button Enum). So I initially designed the loop to check for 34304, 34305, 34306, etc. to determine which button was pressed.  However, when I plugged in a different LED Shield, I noticed that the numbers changed
-             * 
+             * I wasn't able to ascertain what those other numbers represented, but I did ascertain that the hex value at the end contained the data of the button that was pressed.  From there I discovered the BitConverter.GetBytes()
+             * function that separated the button press number from the other data and so I could use it to grab the button pressed and then use the Button Enumeration to check which button was pressed.
              */
             var ButtonPressed = mcp23017.ReadGpioAB();
+            //var ButtonPressed = mcp23017.DigitalRead((byte)ScaleIndicatorPrinter.Models.MCP23017.Command.MCP23017_INTCAPA); //to read the data from a specific pin.
 
             var InterruptBits = BitConverter.GetBytes(ButtonPressed);
             switch (InterruptBits[0]) //the 0 value contains the button that was pressed...
@@ -184,18 +129,18 @@ namespace ScaleIndicatorPrinter
             }
         }
 
-        private static void btnBoard_OnInterrupt(uint port, uint data, DateTime time)
-        {
-            for (int intCounter = 2; intCounter < 7; intCounter++)
-            {
-                onboardLED.Write(intCounter % 2 == 1);
-                Thread.Sleep(500);
-            }
+        //private static void btnBoard_OnInterrupt(uint port, uint data, DateTime time)
+        //{
+        //    for (int intCounter = 2; intCounter < 7; intCounter++)
+        //    {
+        //        onboardLED.Write(intCounter % 2 == 1);
+        //        Thread.Sleep(500);
+        //    }
 
-            //DisplayInformation();
-            SerialDataReceivedEventArgs objSerialDataReceivedEventArgs = null;
-            IndicatorScannerSerialPort_DataReceived(new object(), objSerialDataReceivedEventArgs);
-        }
+        //    //DisplayInformation();
+        //    SerialDataReceivedEventArgs objSerialDataReceivedEventArgs = null;
+        //    IndicatorScannerSerialPort_DataReceived(new object(), objSerialDataReceivedEventArgs);
+        //}
 
         private static void PerformAction()
         {
@@ -203,6 +148,12 @@ namespace ScaleIndicatorPrinter
 
             switch ((int)mMenuSelection % 4)
             {
+                case (int)MenuSelection.PrintLabel:
+                    //Settings.JobNumber;
+                    //var objLabel = new Label(new string[] { objIndicatorData.GrossWeight.ToString(), objIndicatorData.NetWeight.ToString() });
+                    //mPrinterSerialPort.WriteString(objLabel.LabelText);
+                    mPrinterSerialPort.WriteString(Label.SampleLabel);
+                    break;
                 case (int)MenuSelection.Job:
                     mDataRecieved = RecievedData.ScannerJobAndSuffix;
                     lcdBoard.Write("Scan Job #...");
@@ -238,13 +189,13 @@ namespace ScaleIndicatorPrinter
                     mDataRecieved = RecievedData.None;
                     lcdBoard.Write("Operation:");
                     lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(Settings.OperationNumber);
+                    lcdBoard.Write(Settings.Operation.ToString());
                     break;
                 case (int)MenuSelection.Employees:
                     mDataRecieved = RecievedData.None;
                     lcdBoard.Write("Employees:");
                     lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(Settings.OperationNumber);
+                    lcdBoard.Write("10005, 12345");
                     break;
             }
         }
@@ -253,25 +204,49 @@ namespace ScaleIndicatorPrinter
         {
             var strMessage = mIndicatorScannerSerialPort.ReadString();
             //var strMessage = "B000053350-0000\r\n";
+            if (strMessage == null || strMessage == string.Empty)
+                return;
+
+
+            //mPrinterSerialPort.WriteString(Label.SampleLabel);
 
             switch (mDataRecieved)
             {
                 case RecievedData.ScaleIndicator:
                     var objIndicatorData = new IndicatorData(strMessage);
-                    
+
                     if (objIndicatorData.HasValidDataString)
                     {
-                        var objLabel = new Label(new string[] { objIndicatorData.GrossWeight.ToString(), objIndicatorData.NetWeight.ToString() });
-                        mPrinterSerialPort.WriteString(objLabel.LabelText);
+                        //A new thread must be started in order for the WebGet function to work properly
+                        var someThread = new Thread(delegate() { WebGet(objIndicatorData); });
+                        someThread.Start();
                     }
                     break;
                 case RecievedData.ScannerJobAndSuffix:
-                    var str = strMessage;
+                    mSettings.SetJobNumber(mJobFileName, strMessage);
+                    DisplayInformation();
+                    break;
+                case RecievedData.ScannerOperation:
+                    mSettings.SetOperationNumber(mOperationFileName, strMessage);
                     DisplayInformation();
                     break;
             }
 
             
+        }
+
+        public static void WebGet(IndicatorData objIndicatorData)
+        {
+            //var URL = Settings.ShopTrakTransactionsURL.SetParameters(new string[] { Settings.Job, Settings.Suffix.ToString(), Settings.Operation.ToString() });
+            var URL = @"http://10.1.0.55:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053313&Suffix=00&Operation=60";
+
+            var webClient = new HTTP_Client(new IntegratedSocket("10.1.0.55", 6156));
+            var response = webClient.Get("/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053313&Suffix=00&Operation=60");
+
+            var objLabel = new Label(new string[] { objIndicatorData.GrossWeight.ToString(), objIndicatorData.NetWeight.ToString() });
+            mPrinterSerialPort.WriteString(objLabel.LabelText);
+
+            //Debug.Print("Dude I fired!!");
         }
     }
 }
