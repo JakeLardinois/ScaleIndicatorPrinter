@@ -13,6 +13,7 @@ using Toolbox.NETMF.NET;
 using System.Collections;
 using Json.NETMF;
 using NetduinoRGBLCDShield;
+using System.Text;
 
 
 namespace ScaleIndicatorPrinter
@@ -39,7 +40,7 @@ namespace ScaleIndicatorPrinter
         private static int mintMenuSelection { get; set; }
         private static int mMenuSelection { get { return System.Math.Abs(mintMenuSelection); } }
 
-        //private static InterruptPort btnBoard { get; set; }
+        private static InterruptPort btnBoard { get; set; }
         private static OutputPort onboardLED = new OutputPort(Pins.ONBOARD_LED, false);
 
         private static InterruptPort btnShield { get; set; }
@@ -57,10 +58,10 @@ namespace ScaleIndicatorPrinter
             // add an event-handler for handling incoming data
             mIndicatorScannerSerialPort.DataReceived += new SerialDataReceivedEventHandler(IndicatorScannerSerialPort_DataReceived);
 
-            ////InterruptEdgeLevelLow only fires the event the first time that the button descends
-            //btnBoard = new InterruptPort(Pins.ONBOARD_SW1, false, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeHigh);
-            //// Create an event handler for the button
-            //btnBoard.OnInterrupt += new NativeEventHandler(btnBoard_OnInterrupt);
+            //InterruptEdgeLevelLow only fires the event the first time that the button descends
+            btnBoard = new InterruptPort(Pins.ONBOARD_SW1, false, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeHigh);
+            // Create an event handler for the button
+            btnBoard.OnInterrupt += new NativeEventHandler(btnBoard_OnInterrupt);
 
             mSettings = new Settings(new System.IO.DirectoryInfo(mRootDirectory));
 
@@ -92,6 +93,8 @@ namespace ScaleIndicatorPrinter
             btnShield = new InterruptPort(Pins.GPIO_PIN_D10, true, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeLow);
             // Bind the interrupt handler to the pin's interrupt event.
             btnShield.OnInterrupt += new NativeEventHandler(btnShield_OnInterrupt);
+
+            //Microsoft.SPOT.Time.TimeService.SetTimeZoneOffset(300);
 
             // we are done
             Thread.Sleep(Timeout.Infinite);
@@ -132,18 +135,18 @@ namespace ScaleIndicatorPrinter
             }
         }
 
-        //private static void btnBoard_OnInterrupt(uint port, uint data, DateTime time)
-        //{
-        //    for (int intCounter = 2; intCounter < 7; intCounter++)
-        //    {
-        //        onboardLED.Write(intCounter % 2 == 1);
-        //        Thread.Sleep(500);
-        //    }
+        private static void btnBoard_OnInterrupt(uint port, uint data, DateTime time)
+        {
+            for (int intCounter = 2; intCounter < 7; intCounter++)
+            {
+                onboardLED.Write(intCounter % 2 == 1);
+                Thread.Sleep(500);
+            }
 
-        //    //DisplayInformation();
-        //    SerialDataReceivedEventArgs objSerialDataReceivedEventArgs = null;
-        //    IndicatorScannerSerialPort_DataReceived(new object(), objSerialDataReceivedEventArgs);
-        //}
+            //DisplayInformation();
+            SerialDataReceivedEventArgs objSerialDataReceivedEventArgs = null;
+            IndicatorScannerSerialPort_DataReceived(new object(), objSerialDataReceivedEventArgs);
+        }
 
         private static void PerformAction()
         {
@@ -205,8 +208,16 @@ namespace ScaleIndicatorPrinter
 
         private static void IndicatorScannerSerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            var strMessage = mIndicatorScannerSerialPort.ReadString();
+            //var strMessage = mIndicatorScannerSerialPort.ReadString();
             //var strMessage = "B000053350-0000\r\n";
+            var strMessage = "Date:  08/05/2015\r\n" +
+                "Time:    06:37:27\r\n" +
+                "Net          17lb\r\n" +
+                "Tare         19lb\r\n" +
+                "Gross        100lb\r\n" +
+                "\r\n" +
+                "\r\n";
+
             if (strMessage == null || strMessage == string.Empty)
                 return;
 
@@ -243,14 +254,34 @@ namespace ScaleIndicatorPrinter
         public static void WebGet(IndicatorData objIndicatorData)
         {
             //var URL = Settings.ShopTrakTransactionsURL.SetParameters(new string[] { Settings.Job, Settings.Suffix.ToString(), Settings.Operation.ToString() });
-            var URL = @"http://10.1.0.55:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053094&Suffix=00&Operation=10";
+            //var URL = @"http://10.1.0.55:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053094&Suffix=0&Operation=10";
+            var URL = @"http://dataservice.wiretechfab.com:3306/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053089&Suffix=0&Operation=10";
+
             var objURI = new Uri(URL);
             
             var webClient = new HTTP_Client(new IntegratedSocket(objURI.Host, (ushort)objURI.Port));
             var response = webClient.Get(objURI.AbsolutePath);
 
-            ArrayList DataList = JsonSerializer.DeserializeString(response.ResponseBody) as ArrayList;
+            // Did we get the expected response? (a "200 OK")
+            if (response.ResponseCode != 200)
+                throw new ApplicationException("Unexpected HTTP response code: " + response.ResponseCode.ToString());
+
+            ArrayList arrayList = JsonSerializer.DeserializeString(response.ResponseBody) as ArrayList;
+            Hashtable hashtable = arrayList[0] as Hashtable;
+
+            //var CurrentDateTime = hashtable["CurrentDateTime"].ToString().GetDateTimeFromJSON();
+            var CurrentDateTime = DateTimeExtensions.FromASPNetAjax(hashtable["CurrentDateTime"].ToString()).AddHours(-5);//Central Time Zone has 5 hour offset from UTC
+
+            StringBuilder strBldrEmployees = new StringBuilder();
+            for (int intCounter = 0; intCounter < arrayList.Count; intCounter++)
+            {
+                hashtable = arrayList[intCounter] as Hashtable;
+                strBldrEmployees.Append(hashtable["emp_num"].ToString().Trim() + ",");
+            }
+            strBldrEmployees.Remove(strBldrEmployees.ToString().LastIndexOf(","), 1);
             
+
+
 
             var objLabel = new Label(new string[] { objIndicatorData.GrossWeight.ToString(), objIndicatorData.NetWeight.ToString() });
             mPrinterSerialPort.WriteString(objLabel.LabelText);

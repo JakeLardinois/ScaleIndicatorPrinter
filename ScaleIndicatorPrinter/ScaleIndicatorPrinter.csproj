@@ -43,13 +43,11 @@
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Json.NetMF">
-      <HintPath>..\..\Json.NetMF\Json.NetMF43\bin\Debug\Json.NetMF.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.SPOT.Hardware" />
     <Reference Include="Microsoft.SPOT.Hardware.PWM" />
     <Reference Include="Microsoft.SPOT.Hardware.SerialPort" />
     <Reference Include="Microsoft.SPOT.Native" />
+    <Reference Include="Microsoft.SPOT.Time" />
     <Reference Include="SecretLabs.NETMF.Hardware" />
     <Reference Include="SecretLabs.NETMF.Hardware.NetduinoPlus, Version=4.3.1.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="System" />
@@ -70,6 +68,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Json.NetMF\Json.NetMF.csproj">
+      <Project>{5995FC6C-A484-4A48-A75B-00B35F08F092}</Project>
+      <Name>Json.NetMF</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NetduinoRGBLCDShield\NetduinoRGBLCDShield.csproj">
       <Project>{0ECB7448-96F9-4D13-A200-04BD5BF3AA7E}</Project>
       <Name>NetduinoRGBLCDShield</Name>

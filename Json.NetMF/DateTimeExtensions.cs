@@ -134,17 +134,28 @@ namespace Json.NETMF
 		/// </summary>
 		/// <param name="ajax"></param>
 		/// <returns></returns>
-		public static DateTime FromASPNetAjax(string ajax)
-		{
-			string[] parts = ajax.Split(new char[] { '(', ')' });
+        public static DateTime FromASPNetAjax(string ajax)
+        {
+            DateTime dt;
+            
+            string[] parts = ajax.Split(new char[] { '(', ')' });
 
-			long ticks = Convert.ToInt64(parts[1]);
+            if (parts[1].IndexOf('-') == -1) //sometimes the datetime will come like "1439948047883"
+            {
+                long ticks = Convert.ToInt64(parts[1]);
+                // Create a Utc DateTime based on the tick count
+                dt = new DateTime(ticks, DateTimeKind.Utc);
+            }  
+            else //sometimes the datetime will come like "1439948047883-0500"
+            {
+                double dblTemp;
+                //Create a Utc Datetime based on the milliseconds
+                dt = new DateTime(1970, 1, 1)
+                .AddMilliseconds(double.TryParse(parts[1].Substring(0, parts[1].LastIndexOf('-')), out dblTemp) ? dblTemp : 0);
+            }
 
-			// Create a Utc DateTime based on the tick count
-			DateTime dt = new DateTime(ticks, DateTimeKind.Utc);
-
-			return dt;
-		}
+            return dt;
+        }
 		
 	}
 }
