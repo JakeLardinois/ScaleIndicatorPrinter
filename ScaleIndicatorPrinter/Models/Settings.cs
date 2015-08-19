@@ -62,19 +62,31 @@ namespace ScaleIndicatorPrinter.Models
         private static string mShopTrakTransactionsURL { get; set; }
         public static string ShopTrakTransactionsURL { get { return mShopTrakTransactionsURL; } }
 
+        private static string mPieceWeight { get; set; }
+        public static double PieceWeight { 
+            get {
+                double dblTemp;
+
+                return double.TryParse(mPieceWeight, out dblTemp) ? dblTemp : 0.0;
+            } 
+        }
+
 
         public Settings(DirectoryInfo objDirectory )
         {
             if (objDirectory.Exists)
                 mRootDirectory = objDirectory;
             else
-                throw new Exception(objDirectory.FullName + " is not a Valid Directory!!");
+            {
+                Debug.Print(objDirectory.FullName + " is not a Valid Directory!!");
+                throw new ApplicationException(objDirectory.FullName + " is not a Valid Directory!!");
+            }   
         }
 
         public void RetrieveInformationFromFile(string FileName, InformationType Information)
         {
             string FilePathAndName = RootDirectory.FullName + "\\" + FileName;
-            string[] InformationTypes = new [] { "Label Format", "Job", "Operation", "ShopTrak Transactions URL" };
+            string[] InformationTypes = new [] { "Label Format", "Job", "Operation", "ShopTrak Transactions URL", "Piece Weight" };
 
 
             if (File.Exists(FilePathAndName))
@@ -97,9 +109,16 @@ namespace ScaleIndicatorPrinter.Models
                         case InformationType.ShopTrakTransactionsURL:
                             mShopTrakTransactionsURL = objStreamReader.ReadLine().Trim();
                             break;
+                        case InformationType.PieceWeight:
+                            mPieceWeight = objStreamReader.ReadLine().Trim();
+                            break;
                     }
             else
-                throw new Exception(FileName + " is not a Valid " + InformationTypes[(int)Information] + " Data File!!");
+            {
+                Debug.Print(FileName + " is not a Valid " + InformationTypes[(int)Information] + " Data File!!");
+                throw new ApplicationException(FileName + " is not a Valid " + InformationTypes[(int)Information] + " Data File!!");
+            }
+                
         }
 
         public void SetJobNumber(string FileName, string Job)
@@ -116,6 +135,14 @@ namespace ScaleIndicatorPrinter.Models
                 objStreamWriter.WriteLine(Operation);
 
             mOperationNumber = Operation;
+        }
+
+        public void SetPieceWeight(string FileName, double PieceWeight)
+        {
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + FileName))
+                objStreamWriter.WriteLine(PieceWeight);
+
+            mPieceWeight = PieceWeight.ToString();
         }
     }
 }

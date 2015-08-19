@@ -25,7 +25,8 @@ namespace ScaleIndicatorPrinter.Models
         LabelFormat = 0,
         JobNumber = 1,
         OperationNumber = 2,
-        ShopTrakTransactionsURL = 3
+        ShopTrakTransactionsURL = 3,
+        PieceWeight
     }
 
     public enum MenuSelection
@@ -33,6 +34,16 @@ namespace ScaleIndicatorPrinter.Models
         PrintLabel,
         Job,
         Operation,
-        Employees
+        ViewPieceWeight,
+        AdjustPieceWeight
     }
+
+    //public enum IncrementBy
+    //{
+    //    Tens = 10,
+    //    Ones = 1,
+    //    Tenths = .1,
+    //    Hundreths = .01,
+    //    Thousandths = .001
+    //}
 }

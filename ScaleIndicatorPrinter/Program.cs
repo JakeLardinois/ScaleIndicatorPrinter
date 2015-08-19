@@ -31,54 +31,68 @@ namespace ScaleIndicatorPrinter
 
         public static string mShopTrakTransactionsURL { get; set; }
 
-        private static string mRootDirectory { get { return @"\SD\"; } }
-        private static string mLabelFormatFileName { get { return "LabelFormat.txt"; } }
-        private static string mJobFileName { get { return "Job.txt"; } }
-        private static string mOperationFileName { get { return "Operation.txt"; } }
-        private static string mShopTrakTransactionsURLFileName { get { return "ShopTrakTransactionsURL.txt"; } }
+        private static string mRootDirectory { get; set; }
+        private static string mLabelFormatFileName { get; set; }
+        private static string mJobFileName { get; set; }
+        private static string mOperationFileName { get; set; }
+        private static string mShopTrakTransactionsURLFileName { get; set; }
+        private static string mPieceWeightFileName { get; set; }
+        private static double mPieceWeight { get; set; }
 
         private static int mintMenuSelection { get; set; }
         private static int mMenuSelection { get { return System.Math.Abs(mintMenuSelection); } }
 
+        private static int mintIncrementSelection { get; set; }
+        private static int mIncrementSelection { get { return System.Math.Abs(mintIncrementSelection); } }
+        private static double[] mIncrements { get; set; }
+
         private static InterruptPort btnBoard { get; set; }
-        private static OutputPort onboardLED = new OutputPort(Pins.ONBOARD_LED, false);
+        private static OutputPort onboardLED { get; set; }
 
         private static InterruptPort btnShield { get; set; }
 
         public static void Main()
         {
-            // initialize the serial port for COM1 (using D0 & D1) and COM2 (using D2 & D3)
-            mIndicatorScannerSerialPort = new MySerialPort(SerialPorts.COM1, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
-            mPrinterSerialPort = new MySerialPort(SerialPorts.COM3, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
+            ConfigureDefaults();
 
-            // open the serial-ports, so we can send & receive data
-            mIndicatorScannerSerialPort.Open();
-            mPrinterSerialPort.Open();
+            RetrieveSettingsFromSDCard();
 
-            // add an event-handler for handling incoming data
-            mIndicatorScannerSerialPort.DataReceived += new SerialDataReceivedEventHandler(IndicatorScannerSerialPort_DataReceived);
+            InitilizeSerialPorts();
+
+            ConfigureOnBoardButton();
+
+            ConfigureLCDShield();
+
+            // we are done
+            Thread.Sleep(Timeout.Infinite);
+        }
+
+        public static void ConfigureDefaults()
+        {
+            mRootDirectory = @"\SD\";
+            mLabelFormatFileName = "LabelFormat.txt";
+            mJobFileName = "Job.txt";
+            mOperationFileName = "Operation.txt";
+            mShopTrakTransactionsURLFileName = "ShopTrakTransactionsURL.txt";
+            mPieceWeightFileName = "PieceWeight.txt";
+
+            mintIncrementSelection = 3;
+            mIncrements = new double[] { .001, .01, .1, 1, 10 };
+        }
+
+        public static void ConfigureOnBoardButton()
+        {
+            //configure the onboard led...
+            onboardLED = new OutputPort(Pins.ONBOARD_LED, false);
 
             //InterruptEdgeLevelLow only fires the event the first time that the button descends
             btnBoard = new InterruptPort(Pins.ONBOARD_SW1, false, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeHigh);
             // Create an event handler for the button
             btnBoard.OnInterrupt += new NativeEventHandler(btnBoard_OnInterrupt);
+        }
 
-            mSettings = new Settings(new System.IO.DirectoryInfo(mRootDirectory));
-
-            mSettings.RetrieveInformationFromFile(mLabelFormatFileName, InformationType.LabelFormat);
-            Label.LabelFormat = Settings.LabelFormat;
-
-            //mSettings.SetJobNumber(mJobFileName, "B000053070-0000");
-            mSettings.RetrieveInformationFromFile(mJobFileName, InformationType.JobNumber);
-
-            //mSettings.SetOperationNumber(mOperationFileName, "10");
-            mSettings.RetrieveInformationFromFile(mOperationFileName, InformationType.OperationNumber);
-
-
-            mSettings.RetrieveInformationFromFile(mShopTrakTransactionsURLFileName, InformationType.ShopTrakTransactionsURL);
-            mShopTrakTransactionsURL = Settings.ShopTrakTransactionsURL;
-
-
+        public static void ConfigureLCDShield()
+        {
             // the MCP is what allows us to talk with the RGB LCD panel
             mcp23017 = new MCP23017();
             // and this is a class to help us chat with the LCD panel
@@ -93,18 +107,44 @@ namespace ScaleIndicatorPrinter
             btnShield = new InterruptPort(Pins.GPIO_PIN_D10, true, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeLow);
             // Bind the interrupt handler to the pin's interrupt event.
             btnShield.OnInterrupt += new NativeEventHandler(btnShield_OnInterrupt);
+        }
 
-            //Microsoft.SPOT.Time.TimeService.SetTimeZoneOffset(300);
+        public static void RetrieveSettingsFromSDCard()
+        {
+            mSettings = new Settings(new System.IO.DirectoryInfo(mRootDirectory));
 
-            // we are done
-            Thread.Sleep(Timeout.Infinite);
+            mSettings.RetrieveInformationFromFile(mLabelFormatFileName, InformationType.LabelFormat);
+            Label.LabelFormat = Settings.LabelFormat;
+
+            //mSettings.SetJobNumber(mJobFileName, "B000053070-0000");
+            mSettings.RetrieveInformationFromFile(mJobFileName, InformationType.JobNumber);
+
+            //mSettings.SetOperationNumber(mOperationFileName, "10");
+            mSettings.RetrieveInformationFromFile(mOperationFileName, InformationType.OperationNumber);
+
+            mSettings.RetrieveInformationFromFile(mShopTrakTransactionsURLFileName, InformationType.ShopTrakTransactionsURL);
+            mShopTrakTransactionsURL = Settings.ShopTrakTransactionsURL;
+
+            //mSettings.SetPieceWeight(mPieceWeightFileName, .5);
+            mSettings.RetrieveInformationFromFile(mPieceWeightFileName, InformationType.PieceWeight);
+        }
+
+        public static void InitilizeSerialPorts()
+        {
+            // initialize the serial port for COM1 (using D0 & D1) and COM3 (using D7 & D8)
+            mIndicatorScannerSerialPort = new MySerialPort(SerialPorts.COM1, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
+            mPrinterSerialPort = new MySerialPort(SerialPorts.COM3, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
+
+            // open the serial-ports, so we can send & receive data
+            mIndicatorScannerSerialPort.Open();
+            mPrinterSerialPort.Open();
+
+            // add an event-handler for handling incoming data
+            mIndicatorScannerSerialPort.DataReceived += new SerialDataReceivedEventHandler(IndicatorScannerSerialPort_DataReceived);
         }
 
         public static void btnShield_OnInterrupt(UInt32 data1, UInt32 data2, DateTime time)
         {
-            // Set the LED to its new state.
-            //onboardLED.Write(!onboardLED.Read());
-
             /*For some reason this event returns data multiple times when a button gets pressed. If you wait a little bit in the debugger, then the variable actually eventually changes to a value that contains a button's value.
              * What I first observed was that a number such as 34304 was returned multiple times before a number such as 34305 would be returned. 34304=0x8600=NoButton, 34305=0x8601=SelectButton (which was indicated as 0x01 in the 
              * Select button Enum). So I initially designed the loop to check for 34304, 34305, 34306, etc. to determine which button was pressed.  However, when I plugged in a different LED Shield, I noticed that the numbers changed
@@ -118,34 +158,83 @@ namespace ScaleIndicatorPrinter
             switch (InterruptBits[0]) //the 0 value contains the button that was pressed...
             {
                 case (int)NetduinoRGBLCDShield.Button.Left:
-                    --mintMenuSelection;
-                    DisplayInformation();
+                    if (mMenuSelection == (int)MenuSelection.AdjustPieceWeight)
+                        mintIncrementSelection = mintIncrementSelection >= mIncrements.Length - 1 ? mintIncrementSelection : ++mintIncrementSelection;
+                    else
+                    {
+                        ++mintMenuSelection;
+                        DisplayInformation();
+                    }
+                    //--mintMenuSelection;
+                    //DisplayInformation();
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Right:
-                    ++mintMenuSelection;
-                    DisplayInformation();
+                    if (mMenuSelection == (int)MenuSelection.AdjustPieceWeight)
+                        mintIncrementSelection = mintIncrementSelection <= 0 ? mintIncrementSelection : --mintIncrementSelection;
+                    else
+                    {
+                        --mintMenuSelection;
+                        DisplayInformation();
+                    }
+                    //++mintMenuSelection;
+                    //DisplayInformation();
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Up:
+                    if (mMenuSelection == (int)MenuSelection.AdjustPieceWeight)
+                    {
+                        lcdBoard.SetPosition(1, 0);
+                        mPieceWeight = mPieceWeight + mIncrements[mIncrementSelection % mIncrements.Length];
+                        lcdBoard.Write(mPieceWeight.ToString("D3"));
+                    }
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Down:
+                    if (mMenuSelection == (int)MenuSelection.AdjustPieceWeight)
+                    {
+                        lcdBoard.SetPosition(1, 0);
+                        mPieceWeight = mPieceWeight - mIncrements[mIncrementSelection % mIncrements.Length];
+                        mPieceWeight = mPieceWeight > 0 ? mPieceWeight : 0;
+                        lcdBoard.Write(mPieceWeight.ToString("D3"));
+                    }
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Select:
-                    PerformAction();
+                    if (mMenuSelection == (int)MenuSelection.AdjustPieceWeight)
+                    {
+                        mSettings.SetPieceWeight(mPieceWeightFileName, mPieceWeight);
+                        mDataRecieved = RecievedData.None;
+                        mintMenuSelection = (int)MenuSelection.ViewPieceWeight;
+                        DisplayInformation();
+                    }
+                    else
+                        PerformAction();
                     break;
             }
         }
 
         private static void btnBoard_OnInterrupt(uint port, uint data, DateTime time)
         {
+            lcdBoard.Clear();
+            lcdBoard.SetPosition(0, 0);
+            lcdBoard.Write("Rebooting...");
+            //Makes the LED blink 3 times
             for (int intCounter = 2; intCounter < 7; intCounter++)
             {
                 onboardLED.Write(intCounter % 2 == 1);
-                Thread.Sleep(500);
+                Thread.Sleep(300);
             }
+            PowerState.RebootDevice(false);
 
-            //DisplayInformation();
-            SerialDataReceivedEventArgs objSerialDataReceivedEventArgs = null;
-            IndicatorScannerSerialPort_DataReceived(new object(), objSerialDataReceivedEventArgs);
+            //For development purposes...
+            #region 
+            ////Makes the LED blink 3 times
+            //for (int intCounter = 2; intCounter < 7; intCounter++)
+            //{
+            //    onboardLED.Write(intCounter % 2 == 1);
+            //    Thread.Sleep(250);
+            //}
+            ////Fires the Serial Port Data Recieved Event Listener to simulate data being recieved from the serial port. 
+            //SerialDataReceivedEventArgs objSerialDataReceivedEventArgs = null;
+            //IndicatorScannerSerialPort_DataReceived(new object(), objSerialDataReceivedEventArgs);
+            #endregion
         }
 
         private static void PerformAction()
@@ -168,6 +257,12 @@ namespace ScaleIndicatorPrinter
                     mDataRecieved = RecievedData.ScannerOperation;
                     lcdBoard.Write("Scan Op #...");
                     break;
+                case (int)MenuSelection.ViewPieceWeight:
+                    mintMenuSelection = (int)MenuSelection.AdjustPieceWeight;
+                    mDataRecieved = RecievedData.None;
+                    mPieceWeight = Settings.PieceWeight;
+                    lcdBoard.Write("Adj Pc Weight...");
+                    break;
             }
         }
 
@@ -176,8 +271,8 @@ namespace ScaleIndicatorPrinter
             lcdBoard.Clear();
             lcdBoard.SetPosition(0, 0);
 
-
-            switch (mMenuSelection % 4)
+            mintMenuSelection = mintMenuSelection % 4;
+            switch (mMenuSelection)
             {
                 case (int)MenuSelection.PrintLabel:
                     mDataRecieved = RecievedData.ScaleIndicator;
@@ -197,32 +292,29 @@ namespace ScaleIndicatorPrinter
                     lcdBoard.SetPosition(1, 0);
                     lcdBoard.Write(Settings.Operation.ToString());
                     break;
-                case (int)MenuSelection.Employees:
+                case (int)MenuSelection.ViewPieceWeight:
                     mDataRecieved = RecievedData.None;
-                    lcdBoard.Write("Employees:");
+                    lcdBoard.Write("Piece Weight:");
                     lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write("10005, 12345");
+                    lcdBoard.Write(Settings.PieceWeight.ToString("D3"));
                     break;
             }
         }
 
         private static void IndicatorScannerSerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            //var strMessage = mIndicatorScannerSerialPort.ReadString();
+            var strMessage = mIndicatorScannerSerialPort.ReadString();
             //var strMessage = "B000053350-0000\r\n";
-            var strMessage = "Date:  08/05/2015\r\n" +
-                "Time:    06:37:27\r\n" +
-                "Net          17lb\r\n" +
-                "Tare         19lb\r\n" +
-                "Gross        100lb\r\n" +
-                "\r\n" +
-                "\r\n";
+            //var strMessage = "Date:  08/05/2015\r\n" +
+            //    "Time:    06:37:27\r\n" +
+            //    "Net          17lb\r\n" +
+            //    "Tare         19lb\r\n" +
+            //    "Gross        100lb\r\n" +
+            //    "\r\n" +
+            //    "\r\n";
 
             if (strMessage == null || strMessage == string.Empty)
                 return;
-
-
-            //mPrinterSerialPort.WriteString(Label.SampleLabel);
 
             switch (mDataRecieved)
             {
@@ -231,8 +323,8 @@ namespace ScaleIndicatorPrinter
 
                     if (objIndicatorData.HasValidDataString)
                     {
-                        /*A new thread must be started in order for the WebGet function to work properly 
-                         * http://www.codeproject.com/Articles/795829/Multithreading-with-Netduino-and-NET-Microframewor
+                        /*A new thread must be started in order for the WebGet function to work properly; otherwise WebGet(objIndicatorData) would just silently fail...
+                         * http://www.codeproject.com/Articles/795829/Multithreading-with-Netduino-and-NET-Microframework
                          * https://www.youtube.com/watch?v=YZOrORB88-s */
                         var DataRequestThread = new Thread(delegate() { WebGet(objIndicatorData); });
                         DataRequestThread.Start();
@@ -254,8 +346,10 @@ namespace ScaleIndicatorPrinter
         public static void WebGet(IndicatorData objIndicatorData)
         {
             //var URL = Settings.ShopTrakTransactionsURL.SetParameters(new string[] { Settings.Job, Settings.Suffix.ToString(), Settings.Operation.ToString() });
-            //var URL = @"http://10.1.0.55:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053094&Suffix=0&Operation=10";
-            var URL = @"http://dataservice.wiretechfab.com:3306/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053089&Suffix=0&Operation=10";
+            //var URL = @"http://10.1.0.55:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053094&Suffix=0&Operation=10"; //localhost URL
+            //var URL = @"http://dataservice.wiretechfab.com:3306/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053094&Suffix=0&Operation=10"; //external URL
+            var URL = @"http://dataservice.wiretechfab.com:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053628&Suffix=0&Operation=10"; //internal URL
+
 
             var objURI = new Uri(URL);
             
@@ -264,24 +358,29 @@ namespace ScaleIndicatorPrinter
 
             // Did we get the expected response? (a "200 OK")
             if (response.ResponseCode != 200)
+            {
+                Debug.Print("Unexpected HTTP response code: " + response.ResponseCode.ToString());
                 throw new ApplicationException("Unexpected HTTP response code: " + response.ResponseCode.ToString());
-
+            }
+            else if (response.ResponseBody == "[]") //Does the REST Dataset return empty?
+            {
+                Debug.Print("Nobody is punched into that job");
+                throw new ApplicationException("Nobody is punched into that Job...");
+            }
+ 
             ArrayList arrayList = JsonSerializer.DeserializeString(response.ResponseBody) as ArrayList;
-            Hashtable hashtable = arrayList[0] as Hashtable;
+            Hashtable hashtable = arrayList[0] as Hashtable; //get the first row of records
 
-            //var CurrentDateTime = hashtable["CurrentDateTime"].ToString().GetDateTimeFromJSON();
+            //Microsoft.SPOT.Time.TimeService.SetTimeZoneOffset(300);
             var CurrentDateTime = DateTimeExtensions.FromASPNetAjax(hashtable["CurrentDateTime"].ToString()).AddHours(-5);//Central Time Zone has 5 hour offset from UTC
 
             StringBuilder strBldrEmployees = new StringBuilder();
-            for (int intCounter = 0; intCounter < arrayList.Count; intCounter++)
+            for (int intCounter = 0; intCounter < arrayList.Count; intCounter++) //iterate over all the rows to get the employees that are punched into the jobs
             {
                 hashtable = arrayList[intCounter] as Hashtable;
                 strBldrEmployees.Append(hashtable["emp_num"].ToString().Trim() + ",");
             }
-            strBldrEmployees.Remove(strBldrEmployees.ToString().LastIndexOf(","), 1);
-            
-
-
+            strBldrEmployees.Remove(strBldrEmployees.ToString().LastIndexOf(","), 1); //remove the last comma from the string
 
             var objLabel = new Label(new string[] { objIndicatorData.GrossWeight.ToString(), objIndicatorData.NetWeight.ToString() });
             mPrinterSerialPort.WriteString(objLabel.LabelText);
