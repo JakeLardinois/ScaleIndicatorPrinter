@@ -1,4 +1,5 @@
 // Source code is modified from Mike Jones's JSON Serialization and Deserialization library (https://www.ghielectronics.com/community/codeshare/entry/357)
+// https://github.com/mweimer/Json.NetMF
 
 using System;
 using Microsoft.SPOT;

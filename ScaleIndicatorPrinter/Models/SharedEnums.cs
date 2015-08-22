@@ -38,12 +38,4 @@ namespace ScaleIndicatorPrinter.Models
         AdjustPieceWeight
     }
 
-    //public enum IncrementBy
-    //{
-    //    Tens = 10,
-    //    Ones = 1,
-    //    Tenths = .1,
-    //    Hundreths = .01,
-    //    Thousandths = .001
-    //}
 }

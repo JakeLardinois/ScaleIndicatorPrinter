@@ -47,7 +47,7 @@ namespace ScaleIndicatorPrinter
         private static double[] mIncrements { get; set; }
 
         private static InterruptPort btnBoard { get; set; }
-        private static OutputPort onboardLED { get; set; }
+        private static OutputPort onboardLED = new OutputPort(Pins.ONBOARD_LED, false);
 
         private static InterruptPort btnShield { get; set; }
 
@@ -57,7 +57,7 @@ namespace ScaleIndicatorPrinter
 
             RetrieveSettingsFromSDCard();
 
-            InitilizeSerialPorts();
+            ConfigureSerialPorts();
 
             ConfigureOnBoardButton();
 
@@ -82,9 +82,6 @@ namespace ScaleIndicatorPrinter
 
         public static void ConfigureOnBoardButton()
         {
-            //configure the onboard led...
-            onboardLED = new OutputPort(Pins.ONBOARD_LED, false);
-
             //InterruptEdgeLevelLow only fires the event the first time that the button descends
             btnBoard = new InterruptPort(Pins.ONBOARD_SW1, false, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeHigh);
             // Create an event handler for the button
@@ -111,25 +108,37 @@ namespace ScaleIndicatorPrinter
 
         public static void RetrieveSettingsFromSDCard()
         {
-            mSettings = new Settings(new System.IO.DirectoryInfo(mRootDirectory));
+            try
+            {
+                mSettings = new Settings(new System.IO.DirectoryInfo(mRootDirectory));
 
-            mSettings.RetrieveInformationFromFile(mLabelFormatFileName, InformationType.LabelFormat);
-            Label.LabelFormat = Settings.LabelFormat;
+                mSettings.RetrieveInformationFromFile(mLabelFormatFileName, InformationType.LabelFormat);
+                Label.LabelFormat = Settings.LabelFormat;
 
-            //mSettings.SetJobNumber(mJobFileName, "B000053070-0000");
-            mSettings.RetrieveInformationFromFile(mJobFileName, InformationType.JobNumber);
+                //mSettings.SetJobNumber(mJobFileName, "B000053070-0000");
+                mSettings.RetrieveInformationFromFile(mJobFileName, InformationType.JobNumber);
 
-            //mSettings.SetOperationNumber(mOperationFileName, "10");
-            mSettings.RetrieveInformationFromFile(mOperationFileName, InformationType.OperationNumber);
+                //mSettings.SetOperationNumber(mOperationFileName, "10");
+                mSettings.RetrieveInformationFromFile(mOperationFileName, InformationType.OperationNumber);
 
-            mSettings.RetrieveInformationFromFile(mShopTrakTransactionsURLFileName, InformationType.ShopTrakTransactionsURL);
-            mShopTrakTransactionsURL = Settings.ShopTrakTransactionsURL;
+                mSettings.RetrieveInformationFromFile(mShopTrakTransactionsURLFileName, InformationType.ShopTrakTransactionsURL);
+                mShopTrakTransactionsURL = Settings.ShopTrakTransactionsURL;
 
-            //mSettings.SetPieceWeight(mPieceWeightFileName, .5);
-            mSettings.RetrieveInformationFromFile(mPieceWeightFileName, InformationType.PieceWeight);
+                //mSettings.SetPieceWeight(mPieceWeightFileName, .5);
+                mSettings.RetrieveInformationFromFile(mPieceWeightFileName, InformationType.PieceWeight);
+            }
+            catch(Exception objEx)
+            {
+                lcdBoard.Clear();
+                lcdBoard.SetPosition(0, 1);
+                lcdBoard.Write("ERR-" + objEx.Message.Substring(0, 15));
+                lcdBoard.SetPosition(1, 0);
+                lcdBoard.Write(objEx.Message.Substring(16, 25));
+            }
+            
         }
 
-        public static void InitilizeSerialPorts()
+        public static void ConfigureSerialPorts()
         {
             // initialize the serial port for COM1 (using D0 & D1) and COM3 (using D7 & D8)
             mIndicatorScannerSerialPort = new MySerialPort(SerialPorts.COM1, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
@@ -165,8 +174,6 @@ namespace ScaleIndicatorPrinter
                         ++mintMenuSelection;
                         DisplayInformation();
                     }
-                    //--mintMenuSelection;
-                    //DisplayInformation();
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Right:
                     if (mMenuSelection == (int)MenuSelection.AdjustPieceWeight)
@@ -176,15 +183,13 @@ namespace ScaleIndicatorPrinter
                         --mintMenuSelection;
                         DisplayInformation();
                     }
-                    //++mintMenuSelection;
-                    //DisplayInformation();
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Up:
                     if (mMenuSelection == (int)MenuSelection.AdjustPieceWeight)
                     {
                         lcdBoard.SetPosition(1, 0);
                         mPieceWeight = mPieceWeight + mIncrements[mIncrementSelection % mIncrements.Length];
-                        lcdBoard.Write(mPieceWeight.ToString("D3"));
+                        lcdBoard.Write(mPieceWeight.ToString("F3"));
                     }
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Down:
@@ -193,7 +198,7 @@ namespace ScaleIndicatorPrinter
                         lcdBoard.SetPosition(1, 0);
                         mPieceWeight = mPieceWeight - mIncrements[mIncrementSelection % mIncrements.Length];
                         mPieceWeight = mPieceWeight > 0 ? mPieceWeight : 0;
-                        lcdBoard.Write(mPieceWeight.ToString("D3"));
+                        lcdBoard.Write(mPieceWeight.ToString("F3"));
                     }
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Select:
@@ -216,25 +221,26 @@ namespace ScaleIndicatorPrinter
             lcdBoard.SetPosition(0, 0);
             lcdBoard.Write("Rebooting...");
             //Makes the LED blink 3 times
-            for (int intCounter = 2; intCounter < 7; intCounter++)
-            {
-                onboardLED.Write(intCounter % 2 == 1);
-                Thread.Sleep(300);
-            }
+            BlinkOnboardLED(3, 300);
             PowerState.RebootDevice(false);
 
             //For development purposes...
             #region 
             ////Makes the LED blink 3 times
-            //for (int intCounter = 2; intCounter < 7; intCounter++)
-            //{
-            //    onboardLED.Write(intCounter % 2 == 1);
-            //    Thread.Sleep(250);
-            //}
+            //BlinkOnboardLED(3, 300);
             ////Fires the Serial Port Data Recieved Event Listener to simulate data being recieved from the serial port. 
             //SerialDataReceivedEventArgs objSerialDataReceivedEventArgs = null;
             //IndicatorScannerSerialPort_DataReceived(new object(), objSerialDataReceivedEventArgs);
             #endregion
+        }
+
+        private static void BlinkOnboardLED(int NoOfTimes, int WaitPeriod)
+        {
+            for (int intCounter = 2; intCounter < NoOfTimes * 2 + 1; intCounter++)
+            {
+                onboardLED.Write(intCounter % 2 == 1);
+                Thread.Sleep(WaitPeriod);
+            }
         }
 
         private static void PerformAction()
@@ -296,7 +302,7 @@ namespace ScaleIndicatorPrinter
                     mDataRecieved = RecievedData.None;
                     lcdBoard.Write("Piece Weight:");
                     lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(Settings.PieceWeight.ToString("D3"));
+                    lcdBoard.Write(Settings.PieceWeight.ToString("F3"));
                     break;
             }
         }
@@ -348,7 +354,7 @@ namespace ScaleIndicatorPrinter
             //var URL = Settings.ShopTrakTransactionsURL.SetParameters(new string[] { Settings.Job, Settings.Suffix.ToString(), Settings.Operation.ToString() });
             //var URL = @"http://10.1.0.55:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053094&Suffix=0&Operation=10"; //localhost URL
             //var URL = @"http://dataservice.wiretechfab.com:3306/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053094&Suffix=0&Operation=10"; //external URL
-            var URL = @"http://dataservice.wiretechfab.com:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053628&Suffix=0&Operation=10"; //internal URL
+            var URL = @"http://dataservice.wiretechfab.com:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053089&Suffix=0&Operation=10"; //internal URL
 
 
             var objURI = new Uri(URL);
@@ -360,11 +366,21 @@ namespace ScaleIndicatorPrinter
             if (response.ResponseCode != 200)
             {
                 Debug.Print("Unexpected HTTP response code: " + response.ResponseCode.ToString());
+                lcdBoard.Clear();
+                lcdBoard.SetPosition(0, 1);
+                lcdBoard.Write("Unexpected HTTP Resp");
+                lcdBoard.SetPosition(1, 0);
+                lcdBoard.Write(response.ResponseCode.ToString());
                 throw new ApplicationException("Unexpected HTTP response code: " + response.ResponseCode.ToString());
             }
             else if (response.ResponseBody == "[]") //Does the REST Dataset return empty?
             {
                 Debug.Print("Nobody is punched into that job");
+                lcdBoard.Clear();
+                lcdBoard.SetPosition(0, 1);
+                lcdBoard.Write("Nobody is");
+                lcdBoard.SetPosition(1, 0);
+                lcdBoard.Write("Punched in...");
                 throw new ApplicationException("Nobody is punched into that Job...");
             }
  
@@ -373,6 +389,7 @@ namespace ScaleIndicatorPrinter
 
             //Microsoft.SPOT.Time.TimeService.SetTimeZoneOffset(300);
             var CurrentDateTime = DateTimeExtensions.FromASPNetAjax(hashtable["CurrentDateTime"].ToString()).AddHours(-5);//Central Time Zone has 5 hour offset from UTC
+            var Item = hashtable["item"].ToString();
 
             StringBuilder strBldrEmployees = new StringBuilder();
             for (int intCounter = 0; intCounter < arrayList.Count; intCounter++) //iterate over all the rows to get the employees that are punched into the jobs
@@ -382,7 +399,8 @@ namespace ScaleIndicatorPrinter
             }
             strBldrEmployees.Remove(strBldrEmployees.ToString().LastIndexOf(","), 1); //remove the last comma from the string
 
-            var objLabel = new Label(new string[] { objIndicatorData.GrossWeight.ToString(), objIndicatorData.NetWeight.ToString() });
+            var Pieces = objIndicatorData.NetWeight / Settings.PieceWeight;
+            var objLabel = new Label(new string[] { Item, Settings.JobNumber, Settings.Operation.ToString("D3"), strBldrEmployees.ToString(), ((int)Pieces).ToString(), CurrentDateTime.ToString("MM/dd/yy h:mm:ss tt"), CurrentDateTime.ToString("dddd") });
             mPrinterSerialPort.WriteString(objLabel.LabelText);
 
             //Debug.Print("Dude I fired!!");
