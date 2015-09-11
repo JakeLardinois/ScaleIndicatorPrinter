@@ -289,9 +289,6 @@ namespace ScaleIndicatorPrinter
             switch ((int)mMenuSelection % 4)
             {
                 case (int)MenuSelection.PrintLabel:
-                    //Settings.JobNumber;
-                    //var objLabel = new Label(new string[] { objIndicatorData.GrossWeight.ToString(), objIndicatorData.NetWeight.ToString() });
-                    //mPrinterSerialPort.WriteString(objLabel.LabelText);
                     mPrinterSerialPort.WriteString(Label.SampleLabel);
                     break;
                 case (int)MenuSelection.Job:
@@ -325,6 +322,7 @@ namespace ScaleIndicatorPrinter
                     lcdBoard.SetPosition(1, 0);
                     lcdBoard.Write("To print a label");
                     //Tell MUX what channel to listen on...
+                    mMux.SetPort(MuxChannel.C0);
                     break;
                 case (int)MenuSelection.Job :
                     mDataRecieved = RecievedData.None;
@@ -332,6 +330,7 @@ namespace ScaleIndicatorPrinter
                     lcdBoard.SetPosition(1, 0);
                     lcdBoard.Write(Settings.JobNumber);
                     //Tell MUX what channel to listen on...
+                    mMux.SetPort(MuxChannel.C1);
                     break;
                 case (int)MenuSelection.Operation:
                     mDataRecieved = RecievedData.None;
@@ -339,6 +338,7 @@ namespace ScaleIndicatorPrinter
                     lcdBoard.SetPosition(1, 0);
                     lcdBoard.Write(Settings.Operation.ToString());
                     //Tell MUX what channel to listen on...
+                    mMux.SetPort(MuxChannel.C1);
                     break;
                 case (int)MenuSelection.ViewPieceWeight:
                     mDataRecieved = RecievedData.None;
@@ -398,10 +398,10 @@ namespace ScaleIndicatorPrinter
 
         public static void WebGet(IndicatorData objIndicatorData)
         {
-            //var URL = Settings.ShopTrakTransactionsURL.SetParameters(new string[] { Settings.Job, Settings.Suffix.ToString(), Settings.Operation.ToString() });
+            var URL = Settings.ShopTrakTransactionsURL.SetParameters(new string[] { Settings.Job, Settings.Suffix.ToString(), Settings.Operation.ToString() });
             //var URL = @"http://10.1.0.55:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053094&Suffix=0&Operation=10"; //localhost URL
             //var URL = @"http://dataservice.wiretechfab.com:3306/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053094&Suffix=0&Operation=10"; //external URL
-            var URL = @"http://dataservice.wiretechfab.com:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053089&Suffix=0&Operation=10"; //internal URL
+            //var URL = @"http://dataservice.wiretechfab.com:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053089&Suffix=0&Operation=10"; //internal URL
 
 
             var objURI = new Uri(URL);
