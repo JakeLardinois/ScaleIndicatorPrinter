@@ -5,7 +5,7 @@ using System.Threading;
 using Microsoft.SPOT;
 using Microsoft.SPOT.Hardware;
 using SecretLabs.NETMF.Hardware;
-using SecretLabs.NETMF.Hardware.NetduinoPlus;
+using SecretLabs.NETMF.Hardware.Netduino;
 
 using ScaleIndicatorPrinter.Models;
 using System.IO.Ports;
@@ -15,13 +15,13 @@ using Json.NETMF;
 using NetduinoRGBLCDShield;
 using System.Text;
 
-
 namespace ScaleIndicatorPrinter
 {
     public class Program
     {
         private static MySerialPort mIndicatorScannerSerialPort;
         private static MySerialPort mPrinterSerialPort;
+        
 
         public static MCP23017 mcp23017 { get; set; }
         public static RGBLCDShield lcdBoard { get; set; }
@@ -51,6 +51,8 @@ namespace ScaleIndicatorPrinter
 
         private static InterruptPort btnShield { get; set; }
 
+        private static CD74HC4067 mMux { get; set; }
+
         public static void Main()
         {
             ConfigureDefaults();
@@ -62,6 +64,27 @@ namespace ScaleIndicatorPrinter
             ConfigureOnBoardButton();
 
             ConfigureLCDShield();
+
+            ConfigureMUX();
+
+            //try
+            //{
+            //    ConfigureDefaults();
+
+            //    RetrieveSettingsFromSDCard();
+
+            //    ConfigureSerialPorts();
+
+            //    ConfigureOnBoardButton();
+
+            //    ConfigureLCDShield();
+            //}
+            //catch (Exception objEx)
+            //{
+            //    Debug.Print("Caught it Bitch!!\r\n");
+            //    Debug.Print(objEx.Message);
+            //}
+            
 
             // we are done
             Thread.Sleep(Timeout.Infinite);
@@ -78,32 +101,6 @@ namespace ScaleIndicatorPrinter
 
             mintIncrementSelection = 3;
             mIncrements = new double[] { .001, .01, .1, 1, 10 };
-        }
-
-        public static void ConfigureOnBoardButton()
-        {
-            //InterruptEdgeLevelLow only fires the event the first time that the button descends
-            btnBoard = new InterruptPort(Pins.ONBOARD_SW1, false, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeHigh);
-            // Create an event handler for the button
-            btnBoard.OnInterrupt += new NativeEventHandler(btnBoard_OnInterrupt);
-        }
-
-        public static void ConfigureLCDShield()
-        {
-            // the MCP is what allows us to talk with the RGB LCD panel
-            mcp23017 = new MCP23017();
-            // and this is a class to help us chat with the LCD panel
-            lcdBoard = new RGBLCDShield(mcp23017);
-
-            // we'll follow the Adafruit example code
-            mintMenuSelection = (int)MenuSelection.PrintLabel;
-            DisplayInformation();
-
-
-            // Setup the interrupt port
-            btnShield = new InterruptPort(Pins.GPIO_PIN_D10, true, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeLow);
-            // Bind the interrupt handler to the pin's interrupt event.
-            btnShield.OnInterrupt += new NativeEventHandler(btnShield_OnInterrupt);
         }
 
         public static void RetrieveSettingsFromSDCard()
@@ -140,8 +137,13 @@ namespace ScaleIndicatorPrinter
 
         public static void ConfigureSerialPorts()
         {
-            // initialize the serial port for COM1 (using D0 & D1) and COM3 (using D7 & D8)
+            //NetduinoGo.ShieldBase sb = new NetduinoGo.ShieldBase((GoBus.GoPort)1);
+            //mIndicatorScannerSerialPort = new MySerialPort(sb.SerialPorts.COM1, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
+
+            // initialize the serial port for data being input via COM1 (using D0 & D1) from the 
             mIndicatorScannerSerialPort = new MySerialPort(SerialPorts.COM1, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
+            
+            // initialize the serial port for data being output COM3 (using D7 & D8)
             mPrinterSerialPort = new MySerialPort(SerialPorts.COM3, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
 
             // open the serial-ports, so we can send & receive data
@@ -150,6 +152,43 @@ namespace ScaleIndicatorPrinter
 
             // add an event-handler for handling incoming data
             mIndicatorScannerSerialPort.DataReceived += new SerialDataReceivedEventHandler(IndicatorScannerSerialPort_DataReceived);
+        }
+
+        public static void ConfigureOnBoardButton()
+        {
+            //InterruptEdgeLevelLow only fires the event the first time that the button descends
+            btnBoard = new InterruptPort(Pins.ONBOARD_SW1, false, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeHigh);
+            // Create an event handler for the button
+            btnBoard.OnInterrupt += new NativeEventHandler(btnBoard_OnInterrupt);
+        }
+
+        public static void ConfigureLCDShield()
+        {
+            // the MCP is what allows us to talk with the RGB LCD panel
+            mcp23017 = new MCP23017();
+            // and this is a class to help us chat with the LCD panel
+            lcdBoard = new RGBLCDShield(mcp23017);
+
+            // we'll follow the Adafruit example code
+            mintMenuSelection = (int)MenuSelection.PrintLabel;
+            DisplayInformation();
+
+
+            // Setup the interrupt port
+            btnShield = new InterruptPort(Pins.GPIO_PIN_D5, true, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeLow);
+            // Bind the interrupt handler to the pin's interrupt event.
+            btnShield.OnInterrupt += new NativeEventHandler(btnShield_OnInterrupt);
+        }
+
+        public static void ConfigureMUX()
+        {
+            OutputPort DigitalPin9 = new OutputPort(Pins.GPIO_PIN_D9, false); //Goes to S0
+            OutputPort DigitalPin10 = new OutputPort(Pins.GPIO_PIN_D10, false);//Goes to S1
+            OutputPort DigitalPin11 = new OutputPort(Pins.GPIO_PIN_D11, false);//Goes to S2
+            OutputPort DigitalPin12 = new OutputPort(Pins.GPIO_PIN_D12, false);//Goes to S3
+
+            mMux = new CD74HC4067(DigitalPin9, DigitalPin10, DigitalPin11, DigitalPin12);
+            mMux.SetPort(MuxChannel.C0);
         }
 
         public static void btnShield_OnInterrupt(UInt32 data1, UInt32 data2, DateTime time)
@@ -285,18 +324,21 @@ namespace ScaleIndicatorPrinter
                     lcdBoard.Write("Press Print...");
                     lcdBoard.SetPosition(1, 0);
                     lcdBoard.Write("To print a label");
+                    //Tell MUX what channel to listen on...
                     break;
                 case (int)MenuSelection.Job :
                     mDataRecieved = RecievedData.None;
                     lcdBoard.Write("Job:");
                     lcdBoard.SetPosition(1, 0);
                     lcdBoard.Write(Settings.JobNumber);
+                    //Tell MUX what channel to listen on...
                     break;
                 case (int)MenuSelection.Operation:
                     mDataRecieved = RecievedData.None;
                     lcdBoard.Write("Operation:");
                     lcdBoard.SetPosition(1, 0);
                     lcdBoard.Write(Settings.Operation.ToString());
+                    //Tell MUX what channel to listen on...
                     break;
                 case (int)MenuSelection.ViewPieceWeight:
                     mDataRecieved = RecievedData.None;
@@ -309,7 +351,11 @@ namespace ScaleIndicatorPrinter
 
         private static void IndicatorScannerSerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            var strMessage = mIndicatorScannerSerialPort.ReadString();
+            //var strScannerMessage = mScannerSerialPort.ReadString();
+            //var strIndicatorMessage = mIndicatorSerialPort.ReadString();
+            //mPrinterSerialPort.WriteString(strMessage);
+            //mPrinterSerialPort.WriteString(strMessage2);
+
             //var strMessage = "B000053350-0000\r\n";
             //var strMessage = "Date:  08/05/2015\r\n" +
             //    "Time:    06:37:27\r\n" +
@@ -319,7 +365,8 @@ namespace ScaleIndicatorPrinter
             //    "\r\n" +
             //    "\r\n";
 
-            if (strMessage == null || strMessage == string.Empty)
+            var strMessage = mIndicatorScannerSerialPort.ReadString();
+            if (strMessage == string.Empty || strMessage == null )
                 return;
 
             switch (mDataRecieved)
