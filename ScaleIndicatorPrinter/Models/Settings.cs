@@ -71,6 +71,16 @@ namespace ScaleIndicatorPrinter.Models
             } 
         }
 
+        private static string mGrossWeightAdjustment { get; set; }
+        public static double GrossWeightAdjustment
+        {
+            get
+            {
+                double dblTemp;
+
+                return double.TryParse(mGrossWeightAdjustment, out dblTemp) ? dblTemp : 0.0;
+            }
+        }
 
         public Settings(DirectoryInfo objDirectory )
         {
@@ -86,7 +96,7 @@ namespace ScaleIndicatorPrinter.Models
         public void RetrieveInformationFromFile(string FileName, InformationType Information)
         {
             string FilePathAndName = RootDirectory.FullName + "\\" + FileName;
-            string[] InformationTypes = new [] { "Label Format", "Job", "Operation", "ShopTrak Transactions URL", "Piece Weight" };
+            string[] InformationTypes = new [] { "Label Format", "Job", "Operation", "ShopTrak Transactions URL", "Piece Weight", "Gross Weight Adjustment" };
 
 
             if (File.Exists(FilePathAndName))
@@ -94,10 +104,6 @@ namespace ScaleIndicatorPrinter.Models
                     switch (Information)
                     {
                         case InformationType.LabelFormat:
-                            //mLabelFormat = "N" + "\r\n" +
-                            //"A50,100,0,5,1,1,N,\"EXAMPLE 1\"" + "\r\n" +
-                            //"B50,150,0,3,3,7,200,B,\"EXAMPLE 1\"" + "\r\n" +
-                            //"P1" + "\r\n";
                             mLabelFormat = objStreamReader.ReadToEnd();
                             break;
                         case InformationType.JobNumber:
@@ -112,6 +118,9 @@ namespace ScaleIndicatorPrinter.Models
                         case InformationType.PieceWeight:
                             mPieceWeight = objStreamReader.ReadLine().Trim();
                             break;
+                        case InformationType.GrossWeightAdjustment:
+                            mGrossWeightAdjustment = objStreamReader.ReadLine().Trim();
+                            break;
                     }
             else
             {
@@ -119,6 +128,14 @@ namespace ScaleIndicatorPrinter.Models
                 throw new ApplicationException(FileName + " is not a Valid " + InformationTypes[(int)Information] + " Data File!!");
             }
                 
+        }
+
+        public void SetLabelFormat(string FileName, string LabelFormat)
+        {
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + FileName))
+                objStreamWriter.WriteLine(Job);
+
+            mLabelFormat = LabelFormat;
         }
 
         public void SetJobNumber(string FileName, string Job)
@@ -137,12 +154,28 @@ namespace ScaleIndicatorPrinter.Models
             mOperationNumber = Operation;
         }
 
+        public void SetShopTrakTransactionsURL(string FileName, string ShopTrakTransactionsURL)
+        {
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + FileName))
+                objStreamWriter.WriteLine(Job);
+
+            mShopTrakTransactionsURL = ShopTrakTransactionsURL;
+        }
+
         public void SetPieceWeight(string FileName, double PieceWeight)
         {
             using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + FileName))
                 objStreamWriter.WriteLine(PieceWeight);
 
             mPieceWeight = PieceWeight.ToString();
+        }
+
+        public void SetGrossWeightAdjustment(string FileName, double GrossWeightAdjustment)
+        {
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + FileName))
+                objStreamWriter.WriteLine(GrossWeightAdjustment);
+
+            mGrossWeightAdjustment = GrossWeightAdjustment.ToString();
         }
     }
 }

@@ -17,7 +17,8 @@ namespace ScaleIndicatorPrinter.Models
         JobNumber = 1,
         OperationNumber = 2,
         ShopTrakTransactionsURL = 3,
-        PieceWeight
+        PieceWeight = 4,
+        GrossWeightAdjustment = 5
     }
 
     public enum MenuSelection
@@ -26,7 +27,9 @@ namespace ScaleIndicatorPrinter.Models
         Job,
         Operation,
         ViewPieceWeight,
-        AdjustPieceWeight
+        ViewGrossWeightAdjustment,
+        AdjustPieceWeight,
+        AdjustGrossWeight
     }
     
 }
