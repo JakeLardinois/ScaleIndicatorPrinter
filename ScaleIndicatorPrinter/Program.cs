@@ -67,6 +67,10 @@ namespace ScaleIndicatorPrinter
             //Thread.Sleep(10000);
             try
             {
+                ConfigureLCDShield(); //Configure this one first so that errors can be written to the LCD Shield...
+
+                ConfigureMUX();
+
                 ConfigureDefaults();
 
                 RetrieveSettingsFromSDCard();
@@ -75,13 +79,18 @@ namespace ScaleIndicatorPrinter
 
                 ConfigureOnBoardButton();
 
-                ConfigureMUX();
+                mintMenuSelection = (int)MenuSelection.PrintLabel;
 
-                ConfigureLCDShield();
+                DisplayInformation();
             }
             catch (Exception objEx)
             {
-                Debug.Print("Caught it!!\r\n");
+                lcdBoard.Clear();
+                lcdBoard.SetPosition(0, 0);
+                lcdBoard.Write("ERR-" + objEx.Message.Substring(0, 12));
+                lcdBoard.SetPosition(1, 0);
+                lcdBoard.Write(objEx.Message.Substring(12, 27));
+                Debug.Print("Exception caught\r\n");
                 Debug.Print(objEx.Message);
             }
             
@@ -106,47 +115,34 @@ namespace ScaleIndicatorPrinter
 
         public static void RetrieveSettingsFromSDCard()
         {
-            try
-            {
-                mSettings = new Settings(new System.IO.DirectoryInfo(mRootDirectory));
 
-                //mSettings.SetLabelFormat(mLabelFormatFileName, Label.SampleLabel);
-                mSettings.RetrieveInformationFromFile(mLabelFormatFileName, InformationType.LabelFormat);
-                Label.LabelFormat = Settings.LabelFormat;
+            mSettings = new Settings(new System.IO.DirectoryInfo(mRootDirectory));
 
-                //mSettings.SetJobNumber(mJobFileName, "B000053070-0000");
-                mSettings.RetrieveInformationFromFile(mJobFileName, InformationType.JobNumber);
+            //mSettings.SetLabelFormat(mLabelFormatFileName, Label.SampleLabel);
+            mSettings.RetrieveInformationFromFile(mLabelFormatFileName, InformationType.LabelFormat);
+            Label.LabelFormat = Settings.LabelFormat;
 
-                //mSettings.SetOperationNumber(mOperationFileName, "10");
-                mSettings.RetrieveInformationFromFile(mOperationFileName, InformationType.OperationNumber);
+            //mSettings.SetJobNumber(mJobFileName, "B000053070-0000");
+            mSettings.RetrieveInformationFromFile(mJobFileName, InformationType.JobNumber);
 
-                //mSettings.SetShopTrakTransactionsURL(mShopTrakTransactionsURLFileName, 
-                //    "http://dataservice.wiretechfab.com:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=~p0&Suffix=~p1&Operation=~p2");
-                mSettings.RetrieveInformationFromFile(mShopTrakTransactionsURLFileName, InformationType.ShopTrakTransactionsURL);
-                mShopTrakTransactionsURL = Settings.ShopTrakTransactionsURL;
+            //mSettings.SetOperationNumber(mOperationFileName, "10");
+            mSettings.RetrieveInformationFromFile(mOperationFileName, InformationType.OperationNumber);
 
-                //mSettings.SetPieceWeight(mPieceWeightFileName, .5);
-                mSettings.RetrieveInformationFromFile(mPieceWeightFileName, InformationType.PieceWeight);
+            //mSettings.SetShopTrakTransactionsURL(mShopTrakTransactionsURLFileName, 
+            //    "http://dataservice.wiretechfab.com:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=~p0&Suffix=~p1&Operation=~p2");
+            mSettings.RetrieveInformationFromFile(mShopTrakTransactionsURLFileName, InformationType.ShopTrakTransactionsURL);
+            mShopTrakTransactionsURL = Settings.ShopTrakTransactionsURL;
 
-                //mSettings.SetGrossWeightAdjustment(mGrossWeightAdjustmentFileName, 10);
-                mSettings.RetrieveInformationFromFile(mGrossWeightAdjustmentFileName, InformationType.GrossWeightAdjustment);
-            }
-            catch(Exception objEx)
-            {
-                lcdBoard.Clear();
-                lcdBoard.SetPosition(0, 1);
-                lcdBoard.Write("ERR-" + objEx.Message.Substring(0, 15));
-                lcdBoard.SetPosition(1, 0);
-                lcdBoard.Write(objEx.Message.Substring(16, 25));
-            }
+            //mSettings.SetPieceWeight(mPieceWeightFileName, .5);
+            mSettings.RetrieveInformationFromFile(mPieceWeightFileName, InformationType.PieceWeight);
+
+            //mSettings.SetGrossWeightAdjustment(mGrossWeightAdjustmentFileName, 10);
+            mSettings.RetrieveInformationFromFile(mGrossWeightAdjustmentFileName, InformationType.GrossWeightAdjustment);
             
         }
 
         public static void ConfigureSerialPorts()
         {
-            //NetduinoGo.ShieldBase sb = new NetduinoGo.ShieldBase((GoBus.GoPort)1);
-            //mIndicatorScannerSerialPort = new MySerialPort(sb.SerialPorts.COM1, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
-
             // initialize the serial port for data being input via COM1 (using D0 & D1) from the 
             mIndicatorScannerSerialPort = new MySerialPort(SerialPorts.COM1, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
             
@@ -175,10 +171,6 @@ namespace ScaleIndicatorPrinter
             mcp23017 = new MCP23017();
             // and this is a class to help us chat with the LCD panel
             lcdBoard = new RGBLCDShield(mcp23017);
-
-            // we'll follow the Adafruit example code
-            mintMenuSelection = (int)MenuSelection.PrintLabel;
-            DisplayInformation();
 
 
             // Setup the interrupt port

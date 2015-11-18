@@ -9,16 +9,16 @@ namespace ScaleIndicatorPrinter.Models
 {
     public class Settings
     {
+        public Exception LastException { get; set; }
+
         private static DirectoryInfo mRootDirectory { get; set; }
         public static DirectoryInfo RootDirectory { get { return mRootDirectory; } }
-
 
         private static string mLabelFormat { get; set; }
         public static string LabelFormat { get { return mLabelFormat; } }
 
         private static string mJobNumber { get; set; }
         public static string JobNumber { get { return mJobNumber; } }
-
         public static string Job { 
             get {
                 if (mJobNumber.IndexOf('-') != -1)
@@ -30,7 +30,6 @@ namespace ScaleIndicatorPrinter.Models
                     return "B";
             } 
         }
-
         public static int Suffix {
             get
             {
@@ -89,7 +88,7 @@ namespace ScaleIndicatorPrinter.Models
             else
             {
                 Debug.Print(objDirectory.FullName + " is not a Valid Directory!!");
-                throw new ApplicationException(objDirectory.FullName + " is not a Valid Directory!!");
+                LastException = new ApplicationException(objDirectory.FullName + " is not a Valid Directory!!");
             }   
         }
 
@@ -124,7 +123,12 @@ namespace ScaleIndicatorPrinter.Models
                     }
             else
             {
-                Debug.Print(FileName + " is not a Valid " + InformationTypes[(int)Information] + " Data File!!");
+                //File.Create(FilePathAndName);
+                //using (StreamWriter objStreamWriter = new StreamWriter(FilePathAndName))
+                //    objStreamWriter.WriteLine();
+
+                //Debug.Print(FileName + " is not a Valid " + InformationTypes[(int)Information] + " Data File!!");
+                //Debug.Print("Created " + FileName + " for a" + InformationTypes[(int)Information] + " Data File...");
                 throw new ApplicationException(FileName + " is not a Valid " + InformationTypes[(int)Information] + " Data File!!");
             }
                 
