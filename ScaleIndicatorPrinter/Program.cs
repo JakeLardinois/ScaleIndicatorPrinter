@@ -389,20 +389,6 @@ namespace ScaleIndicatorPrinter
 
         private static void IndicatorScannerSerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            //var strScannerMessage = mScannerSerialPort.ReadString();
-            //var strIndicatorMessage = mIndicatorSerialPort.ReadString();
-            //mPrinterSerialPort.WriteString(strMessage);
-            //mPrinterSerialPort.WriteString(strMessage2);
-
-            //var strMessage = "B000053350-0000\r\n";
-            //var strMessage = "Date:  08/05/2015\r\n" +
-            //    "Time:    06:37:27\r\n" +
-            //    "Net          17lb\r\n" +
-            //    "Tare         19lb\r\n" +
-            //    "Gross        100lb\r\n" +
-            //    "\r\n" +
-            //    "\r\n";
-
             var strMessage = mIndicatorScannerSerialPort.ReadString();
             if (strMessage == string.Empty || strMessage == null )
                 return;
@@ -484,7 +470,7 @@ namespace ScaleIndicatorPrinter
             }
             strBldrEmployees.Remove(strBldrEmployees.ToString().LastIndexOf(","), 1); //remove the last comma from the string
 
-            var Pieces = objIndicatorData.NetWeight / Settings.PieceWeight;
+            var Pieces = (objIndicatorData.NetWeight + mGrossWeightAdjustment) / Settings.PieceWeight;
             var objLabel = new Label(new string[] { Item, Settings.JobNumber, Settings.Operation.ToString("D3"), strBldrEmployees.ToString(), ((int)Pieces).ToString(), CurrentDateTime.ToString("MM/dd/yy h:mm:ss tt"), CurrentDateTime.ToString("dddd") });
             mPrinterSerialPort.WriteString(objLabel.LabelText);
 
