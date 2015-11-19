@@ -29,23 +29,7 @@ namespace ScaleIndicatorPrinter
         private static RecievedData mDataRecieved { get; set; }
         private static Settings mSettings { get; set; }
 
-        public static string mShopTrakTransactionsURL { get; set; }
-
-        private static string mRootDirectory { get; set; }
-
-        private static string mLabelFormatFileName { get; set; }
-
-        private static string mJobFileName { get; set; }
-
-        private static string mOperationFileName { get; set; }
-
-        private static string mShopTrakTransactionsURLFileName { get; set; }
-
-        private static string mPieceWeightFileName { get; set; }
-        private static double mPieceWeight { get; set; }
-
-        private static string mNetWeightAdjustmentFileName { get; set; }
-        private static double mNetWeightAdjustment { get; set; }
+        
 
         private static int mintMenuCount { get { return 5; } } //this represents 5 available menus. Note that the MenuSelection enum has 7 available values but I only want to be able to cycle 
         private static int mintMenuSelection { get; set; }          //through 5 of them since the other 2 AdjustPieceWeight & AdjustNetWeight are set via the 'Select' Button.
@@ -73,13 +57,9 @@ namespace ScaleIndicatorPrinter
 
                 ConfigureDefaults();
 
-                RetrieveSettingsFromSDCard();
-
                 ConfigureSerialPorts();
 
                 ConfigureOnBoardButton();
-
-                mintMenuSelection = (int)MenuSelection.PrintLabel;
 
                 DisplayInformation();
             }
@@ -101,45 +81,22 @@ namespace ScaleIndicatorPrinter
 
         public static void ConfigureDefaults()
         {
-            mRootDirectory = @"\SD\";
-            mLabelFormatFileName = "LabelFormat.txt";
-            mJobFileName = "Job.txt";
-            mOperationFileName = "Operation.txt";
-            mShopTrakTransactionsURLFileName = "ShopTrakTransactionsURL.txt";
-            mPieceWeightFileName = "PieceWeight.txt";
-            mNetWeightAdjustmentFileName = "NetWeightAdjustment.txt";
-
-            mintIncrementSelection = 3;
             mIncrements = new double[] { .001, .01, .1, 1, 10 };
+            mintIncrementSelection = 3;
+
+            mSettings = new Settings();
+            mSettings.RootDirectoryPath = @"\SD\";
+            mSettings.LabelFormatFileName = "LabelFormat.txt";
+            mSettings.JobNumberFileName = "Job.txt";
+            mSettings.OperationFileName = "Operation.txt";
+            mSettings.ShopTrakTransactionsURLFileName = "ShopTrakTransactionsURL.txt";
+            mSettings.PieceWeightFileName = "PieceWeight.txt";
+            mSettings.NetWeightAdjustmentFileName = "NetWeightAdjustment.txt";
+            mSettings.RetrieveSettingsFromSDCard();
+
+            mintMenuSelection = (int)MenuSelection.PrintLabel;
         }
 
-        public static void RetrieveSettingsFromSDCard()
-        {
-
-            mSettings = new Settings(new System.IO.DirectoryInfo(mRootDirectory));
-
-            //mSettings.SetLabelFormat(mLabelFormatFileName, Label.SampleLabel);
-            mSettings.RetrieveInformationFromFile(mLabelFormatFileName, InformationType.LabelFormat);
-            Label.LabelFormat = Settings.LabelFormat;
-
-            //mSettings.SetJobNumber(mJobFileName, "B000053070-0000");
-            mSettings.RetrieveInformationFromFile(mJobFileName, InformationType.JobNumber);
-
-            //mSettings.SetOperationNumber(mOperationFileName, "10");
-            mSettings.RetrieveInformationFromFile(mOperationFileName, InformationType.OperationNumber);
-
-            //mSettings.SetShopTrakTransactionsURL(mShopTrakTransactionsURLFileName, 
-            //    "http://dataservice.wiretechfab.com:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=~p0&Suffix=~p1&Operation=~p2");
-            mSettings.RetrieveInformationFromFile(mShopTrakTransactionsURLFileName, InformationType.ShopTrakTransactionsURL);
-            mShopTrakTransactionsURL = Settings.ShopTrakTransactionsURL;
-
-            //mSettings.SetPieceWeight(mPieceWeightFileName, .5);
-            mSettings.RetrieveInformationFromFile(mPieceWeightFileName, InformationType.PieceWeight);
-
-            //mSettings.SetNetWeightAdjustment(mNetWeightAdjustmentFileName, 10);
-            mSettings.RetrieveInformationFromFile(mNetWeightAdjustmentFileName, InformationType.NetWeightAdjustment);
-            
-        }
 
         public static void ConfigureSerialPorts()
         {
@@ -226,42 +183,42 @@ namespace ScaleIndicatorPrinter
                     if (mMenuSelection == (int)MenuSelection.AdjustPieceWeight)
                     {
                         lcdBoard.SetPosition(1, 0);
-                        mPieceWeight = mPieceWeight + mIncrements[mIncrementSelection % mIncrements.Length];
-                        lcdBoard.Write(mPieceWeight.ToString("F3"));
+                        mSettings.PieceWeight = mSettings.PieceWeight + mIncrements[mIncrementSelection % mIncrements.Length];
+                        lcdBoard.Write(mSettings.PieceWeight.ToString("F3"));
                     }
                     else if (mMenuSelection == (int)MenuSelection.AdjustNetWeight)
                     {
                         lcdBoard.SetPosition(1, 0);
-                        mNetWeightAdjustment = mNetWeightAdjustment + mIncrements[mIncrementSelection % mIncrements.Length];
-                        lcdBoard.Write(mNetWeightAdjustment.ToString("F3"));
+                        mSettings.NetWeightAdjustment = mSettings.NetWeightAdjustment + mIncrements[mIncrementSelection % mIncrements.Length];
+                        lcdBoard.Write(mSettings.NetWeightAdjustment.ToString("F3"));
                     }
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Down:
                     if (mMenuSelection == (int)MenuSelection.AdjustPieceWeight)
                     {
                         lcdBoard.SetPosition(1, 0);
-                        mPieceWeight = mPieceWeight - mIncrements[mIncrementSelection % mIncrements.Length];
-                        mPieceWeight = mPieceWeight > 0 ? mPieceWeight : 0;
-                        lcdBoard.Write(mPieceWeight.ToString("F3"));
+                        mSettings.PieceWeight = mSettings.PieceWeight - mIncrements[mIncrementSelection % mIncrements.Length];
+                        mSettings.PieceWeight = mSettings.PieceWeight > 0 ? mSettings.PieceWeight : 0;
+                        lcdBoard.Write(mSettings.PieceWeight.ToString("F3"));
                     }
                     else if (mMenuSelection == (int)MenuSelection.AdjustNetWeight)
                     {
                         lcdBoard.SetPosition(1, 0);
-                        mNetWeightAdjustment = mNetWeightAdjustment - mIncrements[mIncrementSelection % mIncrements.Length];
-                        lcdBoard.Write(mNetWeightAdjustment.ToString("F3"));
+                        mSettings.NetWeightAdjustment = mSettings.NetWeightAdjustment - mIncrements[mIncrementSelection % mIncrements.Length];
+                        lcdBoard.Write(mSettings.NetWeightAdjustment.ToString("F3"));
                     }
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Select:
                     if (mMenuSelection == (int)MenuSelection.AdjustPieceWeight)
                     {
-                        mSettings.SetPieceWeight(mPieceWeightFileName, mPieceWeight);
+                        mSettings.StorePieceWeight();
                         mDataRecieved = RecievedData.None;
                         mintMenuSelection = (int)MenuSelection.ViewPieceWeight;
                         DisplayInformation();
                     }
                     else if (mMenuSelection == (int)MenuSelection.AdjustNetWeight)
                     {
-                        mSettings.SetNetWeightAdjustment(mNetWeightAdjustmentFileName, mNetWeightAdjustment);
+                        mSettings.StoreNetWeightAdjustment();
                         mDataRecieved = RecievedData.None;
                         mintMenuSelection = (int)MenuSelection.ViewNetWeightAdjustment;
                         DisplayInformation();
@@ -320,13 +277,11 @@ namespace ScaleIndicatorPrinter
                 case (int)MenuSelection.ViewPieceWeight:
                     mintMenuSelection = (int)MenuSelection.AdjustPieceWeight;
                     mDataRecieved = RecievedData.None;
-                    mPieceWeight = Settings.PieceWeight;
                     lcdBoard.Write("Adj Pc Weight...");
                     break;
                 case (int)MenuSelection.ViewNetWeightAdjustment:
                     mintMenuSelection = (int)MenuSelection.AdjustNetWeight;
                     mDataRecieved = RecievedData.None;
-                    mNetWeightAdjustment = Settings.NetWeightAdjustment;
                     lcdBoard.Write("Adj Net Weight...");
                     break;
             }
@@ -352,7 +307,7 @@ namespace ScaleIndicatorPrinter
                     mDataRecieved = RecievedData.None;
                     lcdBoard.Write("Job:");
                     lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(Settings.JobNumber);
+                    lcdBoard.Write(mSettings.JobNumber);
                     //Tell MUX what channel to listen on...
                     mMux.SetPort(MuxChannel.C1);
                     break;
@@ -360,7 +315,7 @@ namespace ScaleIndicatorPrinter
                     mDataRecieved = RecievedData.None;
                     lcdBoard.Write("Operation:");
                     lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(Settings.Operation.ToString());
+                    lcdBoard.Write(mSettings.Operation.ToString());
                     //Tell MUX what channel to listen on...
                     mMux.SetPort(MuxChannel.C1);
                     break;
@@ -368,13 +323,13 @@ namespace ScaleIndicatorPrinter
                     mDataRecieved = RecievedData.None;
                     lcdBoard.Write("Piece Weight:");
                     lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(Settings.PieceWeight.ToString("F3"));
+                    lcdBoard.Write(mSettings.PieceWeight.ToString("F3"));
                     break;
                 case (int)MenuSelection.ViewNetWeightAdjustment:
                     mDataRecieved = RecievedData.None;
                     lcdBoard.Write("Net Weight Adjustment:");
                     lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(Settings.NetWeightAdjustment.ToString("F3"));
+                    lcdBoard.Write(mSettings.NetWeightAdjustment.ToString("F3"));
                     break;
             }
         }
@@ -400,28 +355,23 @@ namespace ScaleIndicatorPrinter
                     }
                     break;
                 case RecievedData.ScannerJobAndSuffix:
-                    mSettings.SetJobNumber(mJobFileName, strMessage);
+                    mSettings.JobNumber = strMessage;
+                    mSettings.StoreJobNumber();
                     DisplayInformation();
                     break;
                 case RecievedData.ScannerOperation:
-                    mSettings.SetOperationNumber(mOperationFileName, strMessage);
+                    mSettings.Operation = strMessage;
+                    mSettings.StoreOperationNumber();
                     DisplayInformation();
                     break;
             }
-
             
         }
 
         public static void WebGet(IndicatorData objIndicatorData)
         {
-            var URL = Settings.ShopTrakTransactionsURL.SetParameters(new string[] { Settings.Job, Settings.Suffix.ToString(), Settings.Operation.ToString() });
-            //var URL = @"http://10.1.0.55:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053094&Suffix=0&Operation=10"; //localhost URL
-            //var URL = @"http://dataservice.wiretechfab.com:3306/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053094&Suffix=0&Operation=10"; //external URL
-            //var URL = @"http://dataservice.wiretechfab.com:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=B000053089&Suffix=0&Operation=10"; //internal URL
-
-
+            var URL = mSettings.ShopTrakTransactionsURL.SetParameters(new string[] { mSettings.Job, mSettings.Suffix.ToString(), mSettings.Operation.ToString() });
             var objURI = new Uri(URL);
-            
             var webClient = new HTTP_Client(new IntegratedSocket(objURI.Host, (ushort)objURI.Port));
             var response = webClient.Get(objURI.AbsolutePath);
 
@@ -462,8 +412,8 @@ namespace ScaleIndicatorPrinter
             }
             strBldrEmployees.Remove(strBldrEmployees.ToString().LastIndexOf(","), 1); //remove the last comma from the string
 
-            var Pieces = (objIndicatorData.NetWeight + mNetWeightAdjustment) / Settings.PieceWeight;
-            var objLabel = new Label(new string[] { Item, Settings.JobNumber, Settings.Operation.ToString("D3"), strBldrEmployees.ToString(), ((int)Pieces).ToString(), CurrentDateTime.ToString("MM/dd/yy h:mm:ss tt"), CurrentDateTime.ToString("dddd") });
+            var Pieces = (objIndicatorData.NetWeight + mSettings.NetWeightAdjustment) / mSettings.PieceWeight;
+            var objLabel = new Label(new string[] { Item, mSettings.JobNumber, mSettings.OperationNumber.ToString("D3"), strBldrEmployees.ToString(), ((int)Pieces).ToString(), CurrentDateTime.ToString("MM/dd/yy h:mm:ss tt"), CurrentDateTime.ToString("dddd") });
             mPrinterSerialPort.WriteString(objLabel.LabelText);
 
         }

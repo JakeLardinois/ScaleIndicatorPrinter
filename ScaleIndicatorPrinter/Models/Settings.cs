@@ -9,34 +9,32 @@ namespace ScaleIndicatorPrinter.Models
 {
     public class Settings
     {
-        public Exception LastException { get; set; }
+        public string RootDirectoryPath { get; set; }
+        private DirectoryInfo RootDirectory { get; set; }
 
-        private static DirectoryInfo mRootDirectory { get; set; }
-        public static DirectoryInfo RootDirectory { get { return mRootDirectory; } }
+        public string LabelFormatFileName { get; set; }
+        public string LabelFormat { get; set; }
 
-        private static string mLabelFormat { get; set; }
-        public static string LabelFormat { get { return mLabelFormat; } }
-
-        private static string mJobNumber { get; set; }
-        public static string JobNumber { get { return mJobNumber; } }
-        public static string Job { 
+        public string JobNumberFileName { get; set; }
+        public string JobNumber { get; set; }
+        public string Job { 
             get {
-                if (mJobNumber.IndexOf('-') != -1)
+                if (JobNumber.IndexOf('-') != -1)
                 {
-                    var intPlaceholder = mJobNumber.LastIndexOf('-');
-                    return mJobNumber.Substring(0, intPlaceholder);
+                    var intPlaceholder = JobNumber.LastIndexOf('-');
+                    return JobNumber.Substring(0, intPlaceholder);
                 }
                 else
                     return "B";
             } 
         }
-        public static int Suffix {
+        public int Suffix {
             get
             {
                 try
                 {
-                    var intPlaceholder = mJobNumber.LastIndexOf('-');
-                    return int.Parse(mJobNumber.Substring(intPlaceholder + 1, mJobNumber.Length - intPlaceholder - 1));
+                    var intPlaceholder = JobNumber.LastIndexOf('-');
+                    return int.Parse(JobNumber.Substring(intPlaceholder + 1, JobNumber.Length - intPlaceholder - 1));
                 }
                 catch
                 {
@@ -45,55 +43,67 @@ namespace ScaleIndicatorPrinter.Models
             } 
         }
 
-        private static string mOperationNumber { get; set; }
-        public static int Operation { 
-            get {
-                try {
-                    return int.Parse(mOperationNumber);
-                }
-                catch {
-                    return int.MaxValue;
-                }
-                 
-            } 
-        }
-
-        private static string mShopTrakTransactionsURL { get; set; }
-        public static string ShopTrakTransactionsURL { get { return mShopTrakTransactionsURL; } }
-
-        private static string mPieceWeight { get; set; }
-        public static double PieceWeight { 
-            get {
-                double dblTemp;
-
-                return double.TryParse(mPieceWeight, out dblTemp) ? dblTemp : 0.0;
-            } 
-        }
-
-        private static string mNetWeightAdjustment { get; set; }
-        public static double NetWeightAdjustment
+        public string OperationFileName { get; set; }
+        public string Operation { get; set; }
+        public int OperationNumber
         {
             get
             {
-                double dblTemp;
+                try
+                {
+                    return int.Parse(Operation);
+                }
+                catch
+                {
+                    return int.MaxValue;
+                }
 
-                return double.TryParse(mNetWeightAdjustment, out dblTemp) ? dblTemp : 0.0;
             }
         }
 
-        public Settings(DirectoryInfo objDirectory )
+        public string ShopTrakTransactionsURLFileName { get; set; }
+        public string ShopTrakTransactionsURL { get; set; }
+
+        public string PieceWeightFileName { get; set; }
+        public double PieceWeight { get; set; }
+
+        public string NetWeightAdjustmentFileName { get; set; }
+        public double NetWeightAdjustment{ get; set; }
+
+
+        public void RetrieveSettingsFromSDCard()
         {
-            if (objDirectory.Exists)
-                mRootDirectory = objDirectory;
-            else
+            RootDirectory = new System.IO.DirectoryInfo(RootDirectoryPath);
+            if (!RootDirectory.Exists)
             {
-                Debug.Print(objDirectory.FullName + " is not a Valid Directory!!");
-                LastException = new ApplicationException(objDirectory.FullName + " is not a Valid Directory!!");
-            }   
+                Debug.Print(RootDirectory.FullName + " is not a Valid Directory!!");
+                throw new ApplicationException(RootDirectory.FullName + " is not a Valid Directory!!");
+            }
+
+            //SetLabelFormat(mLabelFormatFileName, Label.SampleLabel);
+            RetrieveInformationFromFile(LabelFormatFileName, InformationType.LabelFormat);
+
+            //SetJobNumber(mJobFileName, "B000053070-0000");
+            RetrieveInformationFromFile(JobNumberFileName, InformationType.JobNumber);
+
+            //SetOperationNumber(mOperationFileName, "10");
+            RetrieveInformationFromFile(OperationFileName, InformationType.OperationNumber);
+
+            //SetShopTrakTransactionsURL(mShopTrakTransactionsURLFileName, 
+            //    "http://dataservice.wiretechfab.com:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=~p0&Suffix=~p1&Operation=~p2");
+            RetrieveInformationFromFile(ShopTrakTransactionsURLFileName, InformationType.ShopTrakTransactionsURL);
+
+            //SetPieceWeight(mPieceWeightFileName, .5);
+            RetrieveInformationFromFile(PieceWeightFileName, InformationType.PieceWeight);
+
+            //SetNetWeightAdjustment(mNetWeightAdjustmentFileName, 10);
+            RetrieveInformationFromFile(NetWeightAdjustmentFileName, InformationType.NetWeightAdjustment);
         }
 
-        public void RetrieveInformationFromFile(string FileName, InformationType Information)
+        private void RetrieveInformationFromFile(string FileName, InformationType Information)
         {
+            double dblTemp;
+
             string FilePathAndName = RootDirectory.FullName + "\\" + FileName;
             string[] InformationTypes = new [] { "Label Format", "Job", "Operation", "ShopTrak Transactions URL", "Piece Weight", "Net Weight Adjustment" };
 
@@ -103,22 +113,24 @@ namespace ScaleIndicatorPrinter.Models
                     switch (Information)
                     {
                         case InformationType.LabelFormat:
-                            mLabelFormat = objStreamReader.ReadToEnd();
+                            LabelFormat = objStreamReader.ReadToEnd();
                             break;
                         case InformationType.JobNumber:
-                            mJobNumber = objStreamReader.ReadLine().Trim();
+                            JobNumber = objStreamReader.ReadLine().Trim();
                             break;
                         case InformationType.OperationNumber:
-                            mOperationNumber = objStreamReader.ReadLine().Trim();
+                            Operation = objStreamReader.ReadLine().Trim();
                             break;
                         case InformationType.ShopTrakTransactionsURL:
-                            mShopTrakTransactionsURL = objStreamReader.ReadLine().Trim();
+                            ShopTrakTransactionsURL = objStreamReader.ReadLine().Trim();
                             break;
                         case InformationType.PieceWeight:
-                            mPieceWeight = objStreamReader.ReadLine().Trim();
+                            var strPieceWeight = objStreamReader.ReadLine().Trim();
+                            PieceWeight = double.TryParse(strPieceWeight, out dblTemp) ? dblTemp : 0.0;
                             break;
                         case InformationType.NetWeightAdjustment:
-                            mNetWeightAdjustment = objStreamReader.ReadLine().Trim();
+                            var strNetWeightAdjustment = objStreamReader.ReadLine().Trim();
+                            NetWeightAdjustment = double.TryParse(strNetWeightAdjustment, out dblTemp) ? dblTemp : 0.0;
                             break;
                     }
             else
@@ -159,52 +171,40 @@ namespace ScaleIndicatorPrinter.Models
                 
         }
 
-        public void SetLabelFormat(string FileName, string LabelFormat)
+        public void StoreLabelFormat()
         {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + FileName))
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + LabelFormatFileName))
                 objStreamWriter.WriteLine(Job);
-
-            mLabelFormat = LabelFormat;
         }
 
-        public void SetJobNumber(string FileName, string Job)
+        public void StoreJobNumber()
         {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + FileName))
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + JobNumberFileName))
                 objStreamWriter.WriteLine(Job);
-
-            mJobNumber = Job;
         }
 
-        public void SetOperationNumber(string FileName, string Operation)
+        public void StoreOperationNumber()
         {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + FileName))
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + OperationFileName))
                 objStreamWriter.WriteLine(Operation);
-
-            mOperationNumber = Operation;
         }
 
-        public void SetShopTrakTransactionsURL(string FileName, string ShopTrakTransactionsURL)
+        public void StoreShopTrakTransactionsURL()
         {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + FileName))
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + ShopTrakTransactionsURLFileName))
                 objStreamWriter.WriteLine(Job);
-
-            mShopTrakTransactionsURL = ShopTrakTransactionsURL;
         }
 
-        public void SetPieceWeight(string FileName, double PieceWeight)
+        public void StorePieceWeight()
         {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + FileName))
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + PieceWeightFileName))
                 objStreamWriter.WriteLine(PieceWeight);
-
-            mPieceWeight = PieceWeight.ToString();
         }
 
-        public void SetNetWeightAdjustment(string FileName, double NetWeightAdjustment)
+        public void StoreNetWeightAdjustment()
         {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + FileName))
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + NetWeightAdjustmentFileName))
                 objStreamWriter.WriteLine(NetWeightAdjustment);
-
-            mNetWeightAdjustment = NetWeightAdjustment.ToString();
         }
     }
 }
