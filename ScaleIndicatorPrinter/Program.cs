@@ -44,11 +44,11 @@ namespace ScaleIndicatorPrinter
         private static string mPieceWeightFileName { get; set; }
         private static double mPieceWeight { get; set; }
 
-        private static string mGrossWeightAdjustmentFileName { get; set; }
-        private static double mGrossWeightAdjustment { get; set; }
+        private static string mNetWeightAdjustmentFileName { get; set; }
+        private static double mNetWeightAdjustment { get; set; }
 
         private static int mintMenuCount { get { return 5; } } //this represents 5 available menus. Note that the MenuSelection enum has 7 available values but I only want to be able to cycle 
-        private static int mintMenuSelection { get; set; }          //through 5 of them since the other 2 AdjustPieceWeight & AdjustGrossWeight are set via the 'Select' Button.
+        private static int mintMenuSelection { get; set; }          //through 5 of them since the other 2 AdjustPieceWeight & AdjustNetWeight are set via the 'Select' Button.
         private static int mMenuSelection { get { return System.Math.Abs(mintMenuSelection); } }
 
         private static int mintIncrementSelection { get; set; }
@@ -107,7 +107,7 @@ namespace ScaleIndicatorPrinter
             mOperationFileName = "Operation.txt";
             mShopTrakTransactionsURLFileName = "ShopTrakTransactionsURL.txt";
             mPieceWeightFileName = "PieceWeight.txt";
-            mGrossWeightAdjustmentFileName = "GrossWeightAdjustment.txt";
+            mNetWeightAdjustmentFileName = "NetWeightAdjustment.txt";
 
             mintIncrementSelection = 3;
             mIncrements = new double[] { .001, .01, .1, 1, 10 };
@@ -136,8 +136,8 @@ namespace ScaleIndicatorPrinter
             //mSettings.SetPieceWeight(mPieceWeightFileName, .5);
             mSettings.RetrieveInformationFromFile(mPieceWeightFileName, InformationType.PieceWeight);
 
-            //mSettings.SetGrossWeightAdjustment(mGrossWeightAdjustmentFileName, 10);
-            mSettings.RetrieveInformationFromFile(mGrossWeightAdjustmentFileName, InformationType.GrossWeightAdjustment);
+            //mSettings.SetNetWeightAdjustment(mNetWeightAdjustmentFileName, 10);
+            mSettings.RetrieveInformationFromFile(mNetWeightAdjustmentFileName, InformationType.NetWeightAdjustment);
             
         }
 
@@ -205,7 +205,7 @@ namespace ScaleIndicatorPrinter
             switch (InterruptBits[0]) //the 0 value contains the button that was pressed...
             {
                 case (int)NetduinoRGBLCDShield.Button.Left:
-                    if ((mMenuSelection == (int)MenuSelection.AdjustPieceWeight) || (mMenuSelection == (int)MenuSelection.AdjustGrossWeight))
+                    if ((mMenuSelection == (int)MenuSelection.AdjustPieceWeight) || (mMenuSelection == (int)MenuSelection.AdjustNetWeight))
                         mintIncrementSelection = mintIncrementSelection >= mIncrements.Length - 1 ? mintIncrementSelection : ++mintIncrementSelection;
                     else
                     {
@@ -214,7 +214,7 @@ namespace ScaleIndicatorPrinter
                     }
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Right:
-                    if ((mMenuSelection == (int)MenuSelection.AdjustPieceWeight) || (mMenuSelection == (int)MenuSelection.AdjustGrossWeight))
+                    if ((mMenuSelection == (int)MenuSelection.AdjustPieceWeight) || (mMenuSelection == (int)MenuSelection.AdjustNetWeight))
                         mintIncrementSelection = mintIncrementSelection <= 0 ? mintIncrementSelection : --mintIncrementSelection;
                     else
                     {
@@ -229,11 +229,11 @@ namespace ScaleIndicatorPrinter
                         mPieceWeight = mPieceWeight + mIncrements[mIncrementSelection % mIncrements.Length];
                         lcdBoard.Write(mPieceWeight.ToString("F3"));
                     }
-                    else if (mMenuSelection == (int)MenuSelection.AdjustGrossWeight)
+                    else if (mMenuSelection == (int)MenuSelection.AdjustNetWeight)
                     {
                         lcdBoard.SetPosition(1, 0);
-                        mGrossWeightAdjustment = mGrossWeightAdjustment + mIncrements[mIncrementSelection % mIncrements.Length];
-                        lcdBoard.Write(mGrossWeightAdjustment.ToString("F3"));
+                        mNetWeightAdjustment = mNetWeightAdjustment + mIncrements[mIncrementSelection % mIncrements.Length];
+                        lcdBoard.Write(mNetWeightAdjustment.ToString("F3"));
                     }
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Down:
@@ -244,11 +244,11 @@ namespace ScaleIndicatorPrinter
                         mPieceWeight = mPieceWeight > 0 ? mPieceWeight : 0;
                         lcdBoard.Write(mPieceWeight.ToString("F3"));
                     }
-                    else if (mMenuSelection == (int)MenuSelection.AdjustGrossWeight)
+                    else if (mMenuSelection == (int)MenuSelection.AdjustNetWeight)
                     {
                         lcdBoard.SetPosition(1, 0);
-                        mGrossWeightAdjustment = mGrossWeightAdjustment - mIncrements[mIncrementSelection % mIncrements.Length];
-                        lcdBoard.Write(mGrossWeightAdjustment.ToString("F3"));
+                        mNetWeightAdjustment = mNetWeightAdjustment - mIncrements[mIncrementSelection % mIncrements.Length];
+                        lcdBoard.Write(mNetWeightAdjustment.ToString("F3"));
                     }
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Select:
@@ -259,11 +259,11 @@ namespace ScaleIndicatorPrinter
                         mintMenuSelection = (int)MenuSelection.ViewPieceWeight;
                         DisplayInformation();
                     }
-                    else if (mMenuSelection == (int)MenuSelection.AdjustGrossWeight)
+                    else if (mMenuSelection == (int)MenuSelection.AdjustNetWeight)
                     {
-                        mSettings.SetGrossWeightAdjustment(mGrossWeightAdjustmentFileName, mGrossWeightAdjustment);
+                        mSettings.SetNetWeightAdjustment(mNetWeightAdjustmentFileName, mNetWeightAdjustment);
                         mDataRecieved = RecievedData.None;
-                        mintMenuSelection = (int)MenuSelection.ViewGrossWeightAdjustment;
+                        mintMenuSelection = (int)MenuSelection.ViewNetWeightAdjustment;
                         DisplayInformation();
                     }
                     else
@@ -307,7 +307,7 @@ namespace ScaleIndicatorPrinter
             switch ((int)mMenuSelection % mintMenuCount)
             {
                 case (int)MenuSelection.PrintLabel:
-                    mPrinterSerialPort.WriteString(Label.SampleLabel);
+                    mPrinterSerialPort.WriteString(Label.DefaultLabel);
                     break;
                 case (int)MenuSelection.Job:
                     mDataRecieved = RecievedData.ScannerJobAndSuffix;
@@ -323,11 +323,11 @@ namespace ScaleIndicatorPrinter
                     mPieceWeight = Settings.PieceWeight;
                     lcdBoard.Write("Adj Pc Weight...");
                     break;
-                case (int)MenuSelection.ViewGrossWeightAdjustment:
-                    mintMenuSelection = (int)MenuSelection.AdjustGrossWeight;
+                case (int)MenuSelection.ViewNetWeightAdjustment:
+                    mintMenuSelection = (int)MenuSelection.AdjustNetWeight;
                     mDataRecieved = RecievedData.None;
-                    mGrossWeightAdjustment = Settings.GrossWeightAdjustment;
-                    lcdBoard.Write("Adj Gross Weight...");
+                    mNetWeightAdjustment = Settings.NetWeightAdjustment;
+                    lcdBoard.Write("Adj Net Weight...");
                     break;
             }
         }
@@ -370,11 +370,11 @@ namespace ScaleIndicatorPrinter
                     lcdBoard.SetPosition(1, 0);
                     lcdBoard.Write(Settings.PieceWeight.ToString("F3"));
                     break;
-                case (int)MenuSelection.ViewGrossWeightAdjustment:
+                case (int)MenuSelection.ViewNetWeightAdjustment:
                     mDataRecieved = RecievedData.None;
-                    lcdBoard.Write("Gross Weight Adjustment:");
+                    lcdBoard.Write("Net Weight Adjustment:");
                     lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(Settings.GrossWeightAdjustment.ToString("F3"));
+                    lcdBoard.Write(Settings.NetWeightAdjustment.ToString("F3"));
                     break;
             }
         }
@@ -462,7 +462,7 @@ namespace ScaleIndicatorPrinter
             }
             strBldrEmployees.Remove(strBldrEmployees.ToString().LastIndexOf(","), 1); //remove the last comma from the string
 
-            var Pieces = (objIndicatorData.NetWeight + mGrossWeightAdjustment) / Settings.PieceWeight;
+            var Pieces = (objIndicatorData.NetWeight + mNetWeightAdjustment) / Settings.PieceWeight;
             var objLabel = new Label(new string[] { Item, Settings.JobNumber, Settings.Operation.ToString("D3"), strBldrEmployees.ToString(), ((int)Pieces).ToString(), CurrentDateTime.ToString("MM/dd/yy h:mm:ss tt"), CurrentDateTime.ToString("dddd") });
             mPrinterSerialPort.WriteString(objLabel.LabelText);
 

@@ -7,7 +7,7 @@ namespace ScaleIndicatorPrinter.Models
     public class Label
     {
         public static string LabelFormat { get; set; }
-        public static string SampleLabel
+        public static string DefaultLabel
         {
             get
             {

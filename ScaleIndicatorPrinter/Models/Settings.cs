@@ -70,14 +70,14 @@ namespace ScaleIndicatorPrinter.Models
             } 
         }
 
-        private static string mGrossWeightAdjustment { get; set; }
-        public static double GrossWeightAdjustment
+        private static string mNetWeightAdjustment { get; set; }
+        public static double NetWeightAdjustment
         {
             get
             {
                 double dblTemp;
 
-                return double.TryParse(mGrossWeightAdjustment, out dblTemp) ? dblTemp : 0.0;
+                return double.TryParse(mNetWeightAdjustment, out dblTemp) ? dblTemp : 0.0;
             }
         }
 
@@ -95,7 +95,7 @@ namespace ScaleIndicatorPrinter.Models
         public void RetrieveInformationFromFile(string FileName, InformationType Information)
         {
             string FilePathAndName = RootDirectory.FullName + "\\" + FileName;
-            string[] InformationTypes = new [] { "Label Format", "Job", "Operation", "ShopTrak Transactions URL", "Piece Weight", "Gross Weight Adjustment" };
+            string[] InformationTypes = new [] { "Label Format", "Job", "Operation", "ShopTrak Transactions URL", "Piece Weight", "Net Weight Adjustment" };
 
 
             if (File.Exists(FilePathAndName))
@@ -117,18 +117,43 @@ namespace ScaleIndicatorPrinter.Models
                         case InformationType.PieceWeight:
                             mPieceWeight = objStreamReader.ReadLine().Trim();
                             break;
-                        case InformationType.GrossWeightAdjustment:
-                            mGrossWeightAdjustment = objStreamReader.ReadLine().Trim();
+                        case InformationType.NetWeightAdjustment:
+                            mNetWeightAdjustment = objStreamReader.ReadLine().Trim();
                             break;
                     }
             else
             {
-                //File.Create(FilePathAndName);
-                //using (StreamWriter objStreamWriter = new StreamWriter(FilePathAndName))
-                //    objStreamWriter.WriteLine();
-
-                //Debug.Print(FileName + " is not a Valid " + InformationTypes[(int)Information] + " Data File!!");
-                //Debug.Print("Created " + FileName + " for a" + InformationTypes[(int)Information] + " Data File...");
+                Debug.Print(FileName + " is not a Valid " + InformationTypes[(int)Information] + " Data File!!");
+                using (var objFileStream = new FileStream(FilePathAndName, FileMode.Create))
+                    using (var objStreamWriter = new StreamWriter(objFileStream))
+                        switch(Information)
+                        {
+                            case InformationType.LabelFormat:
+                                objStreamWriter.WriteLine(Label.DefaultLabel);
+                                objStreamWriter.WriteLine();
+                                break;
+                            case InformationType.JobNumber:
+                                objStreamWriter.WriteLine("0");
+                                objStreamWriter.WriteLine();
+                                break;
+                            case InformationType.OperationNumber:
+                                objStreamWriter.WriteLine("0");
+                                objStreamWriter.WriteLine();
+                                break;
+                            case InformationType.ShopTrakTransactionsURL:
+                                objStreamWriter.WriteLine("0");
+                                objStreamWriter.WriteLine();
+                                break;
+                            case InformationType.PieceWeight:
+                                objStreamWriter.WriteLine("0");
+                                objStreamWriter.WriteLine();
+                                break;
+                            case InformationType.NetWeightAdjustment:
+                                objStreamWriter.WriteLine("0");
+                                objStreamWriter.WriteLine();
+                                break;
+                        }
+                Debug.Print("Created " + FileName + " for a " + InformationTypes[(int)Information] + " Data File...");
                 throw new ApplicationException(FileName + " is not a Valid " + InformationTypes[(int)Information] + " Data File!!");
             }
                 
@@ -174,12 +199,12 @@ namespace ScaleIndicatorPrinter.Models
             mPieceWeight = PieceWeight.ToString();
         }
 
-        public void SetGrossWeightAdjustment(string FileName, double GrossWeightAdjustment)
+        public void SetNetWeightAdjustment(string FileName, double NetWeightAdjustment)
         {
             using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + FileName))
-                objStreamWriter.WriteLine(GrossWeightAdjustment);
+                objStreamWriter.WriteLine(NetWeightAdjustment);
 
-            mGrossWeightAdjustment = GrossWeightAdjustment.ToString();
+            mNetWeightAdjustment = NetWeightAdjustment.ToString();
         }
     }
 }
