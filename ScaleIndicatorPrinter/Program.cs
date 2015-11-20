@@ -21,15 +21,12 @@ namespace ScaleIndicatorPrinter
     {
         private static MySerialPort mIndicatorScannerSerialPort;
         private static MySerialPort mPrinterSerialPort;
-        
 
         public static MCP23017 mcp23017 { get; set; }
         public static RGBLCDShield lcdBoard { get; set; }
 
         private static RecievedData mDataRecieved { get; set; }
         private static Settings mSettings { get; set; }
-
-        
 
         private static int mintMenuCount { get { return 5; } } //this represents 5 available menus. Note that the MenuSelection enum has 7 available values but I only want to be able to cycle 
         private static int mintMenuSelection { get; set; }          //through 5 of them since the other 2 AdjustPieceWeight & AdjustNetWeight are set via the 'Select' Button.
@@ -65,15 +62,10 @@ namespace ScaleIndicatorPrinter
             }
             catch (Exception objEx)
             {
-                lcdBoard.Clear();
-                lcdBoard.SetPosition(0, 0);
-                lcdBoard.Write("ERR-" + objEx.Message.Substring(0, 12));
-                lcdBoard.SetPosition(1, 0);
-                lcdBoard.Write(objEx.Message.Substring(12, 27));
                 Debug.Print("Exception caught\r\n");
                 Debug.Print(objEx.Message);
+                DisplayError(objEx);
             }
-            
 
             // we are done
             Thread.Sleep(Timeout.Infinite);
@@ -96,7 +88,6 @@ namespace ScaleIndicatorPrinter
 
             mintMenuSelection = (int)MenuSelection.PrintLabel;
         }
-
 
         public static void ConfigureSerialPorts()
         {
@@ -370,52 +361,70 @@ namespace ScaleIndicatorPrinter
 
         public static void WebGet(IndicatorData objIndicatorData)
         {
-            var URL = mSettings.ShopTrakTransactionsURL.SetParameters(new string[] { mSettings.Job, mSettings.Suffix.ToString(), mSettings.Operation.ToString() });
-            var objURI = new Uri(URL);
-            var webClient = new HTTP_Client(new IntegratedSocket(objURI.Host, (ushort)objURI.Port));
-            var response = webClient.Get(objURI.AbsolutePath);
+            try
+            {
+                var URL = mSettings.ShopTrakTransactionsURL.SetParameters(new string[] { mSettings.Job, mSettings.Suffix.ToString(), mSettings.Operation.ToString() });
+                var objURI = new Uri(URL);
+                var webClient = new HTTP_Client(new IntegratedSocket(objURI.Host, (ushort)objURI.Port));
+                var response = webClient.Get(objURI.AbsolutePath);
 
-            // Did we get the expected response? (a "200 OK")
-            if (response.ResponseCode != 200)
-            {
-                Debug.Print("Unexpected HTTP response code: " + response.ResponseCode.ToString());
-                lcdBoard.Clear();
-                lcdBoard.SetPosition(0, 1);
-                lcdBoard.Write("Unexpected HTTP Resp");
-                lcdBoard.SetPosition(1, 0);
-                lcdBoard.Write(response.ResponseCode.ToString());
-                throw new ApplicationException("Unexpected HTTP response code: " + response.ResponseCode.ToString());
-            }
-            else if (response.ResponseBody == "[]") //Does the REST Dataset return empty?
-            {
-                Debug.Print("Nobody is punched into that job");
-                lcdBoard.Clear();
-                lcdBoard.SetPosition(0, 1);
-                lcdBoard.Write("Nobody is");
-                lcdBoard.SetPosition(1, 0);
-                lcdBoard.Write("Punched in...");
-                throw new ApplicationException("Nobody is punched into that Job...");
-            }
+
+                if (response.ResponseCode != 200) // Did we get the expected response? (a "200 OK")
+                    throw new ApplicationException("HTTP Response: " + response.ResponseCode.ToString());
+                else if (response.ResponseBody == "[]") //Does the REST Dataset return empty?
+                    throw new ApplicationException("Nobody punched in that Job.");
  
-            ArrayList arrayList = JsonSerializer.DeserializeString(response.ResponseBody) as ArrayList;
-            Hashtable hashtable = arrayList[0] as Hashtable; //get the first row of records
+                ArrayList arrayList = JsonSerializer.DeserializeString(response.ResponseBody) as ArrayList;
+                Hashtable hashtable = arrayList[0] as Hashtable; //get the first row of records
 
-            //Microsoft.SPOT.Time.TimeService.SetTimeZoneOffset(300);
-            var CurrentDateTime = DateTimeExtensions.FromASPNetAjax(hashtable["CurrentDateTime"].ToString()).AddHours(-5);//Central Time Zone has 5 hour offset from UTC
-            var Item = hashtable["item"].ToString();
+                //Microsoft.SPOT.Time.TimeService.SetTimeZoneOffset(300);
+                var CurrentDateTime = DateTimeExtensions.FromASPNetAjax(hashtable["CurrentDateTime"].ToString()).AddHours(-5);//Central Time Zone has 5 hour offset from UTC
+                var Item = hashtable["item"].ToString();
 
-            StringBuilder strBldrEmployees = new StringBuilder();
-            for (int intCounter = 0; intCounter < arrayList.Count; intCounter++) //iterate over all the rows to get the employees that are punched into the jobs
-            {
-                hashtable = arrayList[intCounter] as Hashtable;
-                strBldrEmployees.Append(hashtable["emp_num"].ToString().Trim() + ",");
+                StringBuilder strBldrEmployees = new StringBuilder();
+                for (int intCounter = 0; intCounter < arrayList.Count; intCounter++) //iterate over all the rows to get the employees that are punched into the jobs
+                {
+                    hashtable = arrayList[intCounter] as Hashtable;
+                    strBldrEmployees.Append(hashtable["emp_num"].ToString().Trim() + ",");
+                }
+                strBldrEmployees.Remove(strBldrEmployees.ToString().LastIndexOf(","), 1); //remove the last comma from the string
+
+                var Pieces = (objIndicatorData.NetWeight + mSettings.NetWeightAdjustment) / mSettings.PieceWeight;
+                var objLabel = new Label(new string[] { Item, mSettings.JobNumber, mSettings.OperationNumber.ToString("D3"), strBldrEmployees.ToString(), ((int)Pieces).ToString(), CurrentDateTime.ToString("MM/dd/yy h:mm:ss tt"), CurrentDateTime.ToString("dddd") });
+                mPrinterSerialPort.WriteString(objLabel.LabelText);
             }
-            strBldrEmployees.Remove(strBldrEmployees.ToString().LastIndexOf(","), 1); //remove the last comma from the string
-
-            var Pieces = (objIndicatorData.NetWeight + mSettings.NetWeightAdjustment) / mSettings.PieceWeight;
-            var objLabel = new Label(new string[] { Item, mSettings.JobNumber, mSettings.OperationNumber.ToString("D3"), strBldrEmployees.ToString(), ((int)Pieces).ToString(), CurrentDateTime.ToString("MM/dd/yy h:mm:ss tt"), CurrentDateTime.ToString("dddd") });
-            mPrinterSerialPort.WriteString(objLabel.LabelText);
-
+            catch (Exception objEx)
+            {
+                DisplayError(objEx);
+            }
         }
+
+        public static void DisplayError(Exception objEx)
+        {
+            var strExceptionType = objEx.GetType().FullName;
+            lcdBoard.Clear();
+            lcdBoard.SetPosition(0, 0);
+
+            if (objEx.Message != null) //Write the Exception Message to the LCD Display...
+            {
+                lcdBoard.Write("ERR-" + objEx.Message.Substring(0, objEx.Message.Length - 1));
+                if (objEx.Message.Length >= 13)
+                {
+                    lcdBoard.SetPosition(1, 0);
+                    lcdBoard.Write(objEx.Message.Substring(12, objEx.Message.Length - 12));
+                }
+            }
+            else //write the exception type out to the LCD Display...
+            {
+                lcdBoard.Write(strExceptionType.Substring(0, strExceptionType.Length - 1));
+                if (strExceptionType.Length >= 16)
+                {
+                    lcdBoard.SetPosition(1, 0);
+                    lcdBoard.Write(strExceptionType.Substring(16, strExceptionType.Length - 16));
+                }
+            }
+                
+        }
+
     }
 }
