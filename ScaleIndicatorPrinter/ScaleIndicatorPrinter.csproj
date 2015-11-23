@@ -36,6 +36,7 @@
     <Compile Include="Models\IndicatorData.cs" />
     <Compile Include="Models\Label.cs" />
     <Compile Include="Models\CD74HC4067.cs" />
+    <Compile Include="Models\Menu.cs" />
     <Compile Include="Models\MyExtensionMethods.cs" />
     <Compile Include="Models\MySerialPort.cs" />
     <Compile Include="Models\Settings.cs" />

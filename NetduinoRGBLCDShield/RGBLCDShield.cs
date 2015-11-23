@@ -151,6 +151,16 @@ namespace NetduinoRGBLCDShield
             Thread.Sleep(2);
         }
 
+        /*Added this function so that I could clear a single line instead of the entire LCD Display*/
+        public void ClearRow(byte row)
+        {
+            SetPosition(row, 0);
+            byte[] buffer = new byte[16];
+            for (int i = 0; i < buffer.Length; i++) buffer[i] = (byte)' ';
+            this.write(buffer, false);
+            SetPosition(row, 0);
+        }
+
         public void Home()
         {
             command(Commands.LCD_RETURNHOME);

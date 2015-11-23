@@ -65,7 +65,11 @@ namespace ScaleIndicatorPrinter.Models
         public string ShopTrakTransactionsURL { get; set; }
 
         public string PieceWeightFileName { get; set; }
-        public double PieceWeight { get; set; }
+        private double mdblPieceWeight { get; set; }
+        public double PieceWeight { 
+            get { return mdblPieceWeight; } 
+            set { mdblPieceWeight = value > 0 ? value : 0; } 
+        }
 
         public string NetWeightAdjustmentFileName { get; set; }
         public double NetWeightAdjustment{ get; set; }

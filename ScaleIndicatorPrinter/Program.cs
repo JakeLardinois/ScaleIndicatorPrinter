@@ -21,121 +21,69 @@ namespace ScaleIndicatorPrinter
     {
         private static MySerialPort mIndicatorScannerSerialPort;
         private static MySerialPort mPrinterSerialPort;
-
-        public static MCP23017 mcp23017 { get; set; }
-        public static RGBLCDShield lcdBoard { get; set; }
-
-        private static RecievedData mDataRecieved { get; set; }
+        
         private static Settings mSettings { get; set; }
-
-        private static int mintMenuCount { get { return 5; } } //this represents 5 available menus. Note that the MenuSelection enum has 7 available values but I only want to be able to cycle 
-        private static int mintMenuSelection { get; set; }          //through 5 of them since the other 2 AdjustPieceWeight & AdjustNetWeight are set via the 'Select' Button.
-        private static int mMenuSelection { get { return System.Math.Abs(mintMenuSelection); } }
-
-        private static int mintIncrementSelection { get; set; }
-        private static int mIncrementSelection { get { return System.Math.Abs(mintIncrementSelection); } }
-        private static double[] mIncrements { get; set; }
+        public static Menu mMenu { get; set; }
 
         private static InterruptPort btnBoard { get; set; }
         private static OutputPort onboardLED = new OutputPort(Pins.ONBOARD_LED, false);
-
         private static InterruptPort btnShield { get; set; }
-
-        private static CD74HC4067 mMux { get; set; }
+        
 
         public static void Main()
         {
-            //Thread.Sleep(10000);
             try
             {
-                ConfigureLCDShield(); //Configure this one first so that errors can be written to the LCD Shield...
+                mMenu = new Menu();//Configure this one first so that errors can be written to the LCD Shield...
+                mSettings = new Settings();
 
-                ConfigureMUX();
+                // Setup the interrupt port for button presses from the LCD Shield
+                btnShield = new InterruptPort(Pins.GPIO_PIN_D5, true, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeLow);
+                // Bind the interrupt handler to the pin's interrupt event.
+                btnShield.OnInterrupt += new NativeEventHandler(btnShield_OnInterrupt);
 
-                ConfigureDefaults();
+                mMenu.Increments = new double[] { .001, .01, .1, 1, 10 };
+                mMenu.IncrementSelection = 3;
+                mMenu.MenuSelection = MenuSelection.PrintLabel;
+                mMenu.Mux.SetPort(MuxChannel.C0);
 
-                ConfigureSerialPorts();
+                mSettings.RootDirectoryPath = @"\SD\";
+                mSettings.LabelFormatFileName = "LabelFormat.txt";
+                mSettings.JobNumberFileName = "Job.txt";
+                mSettings.OperationFileName = "Operation.txt";
+                mSettings.ShopTrakTransactionsURLFileName = "ShopTrakTransactionsURL.txt";
+                mSettings.PieceWeightFileName = "PieceWeight.txt";
+                mSettings.NetWeightAdjustmentFileName = "NetWeightAdjustment.txt";
+                mSettings.RetrieveSettingsFromSDCard();
 
-                ConfigureOnBoardButton();
+                // initialize the serial port for data being input via COM1
+                mIndicatorScannerSerialPort = new MySerialPort(SerialPorts.COM1, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
+                // initialize the serial port for data being output via COM3
+                mPrinterSerialPort = new MySerialPort(SerialPorts.COM3, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
+                // open the serial-ports, so we can send & receive data
+                mIndicatorScannerSerialPort.Open();
+                mPrinterSerialPort.Open();
+                // add an event-handler for handling incoming data
+                mIndicatorScannerSerialPort.DataReceived += new SerialDataReceivedEventHandler(IndicatorScannerSerialPort_DataReceived);
 
-                DisplayInformation();
+
+                //Setup the Onboard button; InterruptEdgeLevelLow only fires the event the first time that the button descends
+                btnBoard = new InterruptPort(Pins.ONBOARD_SW1, false, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeHigh);
+                // Create an event handler for the button
+                btnBoard.OnInterrupt += new NativeEventHandler(btnBoard_OnInterrupt);
+
+                //Display appropriarate information to the user...
+                mMenu.DisplayInformation(mSettings);
             }
             catch (Exception objEx)
             {
                 Debug.Print("Exception caught\r\n");
                 Debug.Print(objEx.Message);
-                DisplayError(objEx);
+                mMenu.DisplayError(objEx);
             }
 
             // we are done
             Thread.Sleep(Timeout.Infinite);
-        }
-
-        public static void ConfigureDefaults()
-        {
-            mIncrements = new double[] { .001, .01, .1, 1, 10 };
-            mintIncrementSelection = 3;
-
-            mSettings = new Settings();
-            mSettings.RootDirectoryPath = @"\SD\";
-            mSettings.LabelFormatFileName = "LabelFormat.txt";
-            mSettings.JobNumberFileName = "Job.txt";
-            mSettings.OperationFileName = "Operation.txt";
-            mSettings.ShopTrakTransactionsURLFileName = "ShopTrakTransactionsURL.txt";
-            mSettings.PieceWeightFileName = "PieceWeight.txt";
-            mSettings.NetWeightAdjustmentFileName = "NetWeightAdjustment.txt";
-            mSettings.RetrieveSettingsFromSDCard();
-
-            mintMenuSelection = (int)MenuSelection.PrintLabel;
-        }
-
-        public static void ConfigureSerialPorts()
-        {
-            // initialize the serial port for data being input via COM1 (using D0 & D1) from the 
-            mIndicatorScannerSerialPort = new MySerialPort(SerialPorts.COM1, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
-            
-            // initialize the serial port for data being output COM3 (using D7 & D8)
-            mPrinterSerialPort = new MySerialPort(SerialPorts.COM3, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
-
-            // open the serial-ports, so we can send & receive data
-            mIndicatorScannerSerialPort.Open();
-            mPrinterSerialPort.Open();
-
-            // add an event-handler for handling incoming data
-            mIndicatorScannerSerialPort.DataReceived += new SerialDataReceivedEventHandler(IndicatorScannerSerialPort_DataReceived);
-        }
-
-        public static void ConfigureOnBoardButton()
-        {
-            //InterruptEdgeLevelLow only fires the event the first time that the button descends
-            btnBoard = new InterruptPort(Pins.ONBOARD_SW1, false, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeHigh);
-            // Create an event handler for the button
-            btnBoard.OnInterrupt += new NativeEventHandler(btnBoard_OnInterrupt);
-        }
-
-        public static void ConfigureLCDShield()
-        {
-            // the MCP is what allows us to talk with the RGB LCD panel
-            mcp23017 = new MCP23017();
-            // and this is a class to help us chat with the LCD panel
-            lcdBoard = new RGBLCDShield(mcp23017);
-
-
-            // Setup the interrupt port
-            btnShield = new InterruptPort(Pins.GPIO_PIN_D5, true, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeLow);
-            // Bind the interrupt handler to the pin's interrupt event.
-            btnShield.OnInterrupt += new NativeEventHandler(btnShield_OnInterrupt);
-        }
-
-        public static void ConfigureMUX()
-        {
-            OutputPort DigitalPin9 = new OutputPort(Pins.GPIO_PIN_D9, false); //Goes to S0
-            OutputPort DigitalPin10 = new OutputPort(Pins.GPIO_PIN_D10, false);//Goes to S1
-            OutputPort DigitalPin11 = new OutputPort(Pins.GPIO_PIN_D11, false);//Goes to S2
-            OutputPort DigitalPin12 = new OutputPort(Pins.GPIO_PIN_D12, false);//Goes to S3
-
-            mMux = new CD74HC4067(DigitalPin9, DigitalPin10, DigitalPin11, DigitalPin12);
-            mMux.SetPort(MuxChannel.C0);
         }
 
         public static void btnShield_OnInterrupt(UInt32 data1, UInt32 data2, DateTime time)
@@ -146,73 +94,68 @@ namespace ScaleIndicatorPrinter
              * I wasn't able to ascertain what those other numbers represented, but I did ascertain that the hex value at the end contained the data of the button that was pressed.  From there I discovered the BitConverter.GetBytes()
              * function that separated the button press number from the other data and so I could use it to grab the button pressed and then use the Button Enumeration to check which button was pressed.
              */
-            var ButtonPressed = mcp23017.ReadGpioAB();
+            var ButtonPressed = mMenu.mcp23017.ReadGpioAB();
             //var ButtonPressed = mcp23017.DigitalRead((byte)ScaleIndicatorPrinter.Models.MCP23017.Command.MCP23017_INTCAPA); //to read the data from a specific pin.
 
             var InterruptBits = BitConverter.GetBytes(ButtonPressed);
             switch (InterruptBits[0]) //the 0 value contains the button that was pressed...
             {
                 case (int)NetduinoRGBLCDShield.Button.Left:
-                    if ((mMenuSelection == (int)MenuSelection.AdjustPieceWeight) || (mMenuSelection == (int)MenuSelection.AdjustNetWeight))
-                        mintIncrementSelection = mintIncrementSelection >= mIncrements.Length - 1 ? mintIncrementSelection : ++mintIncrementSelection;
+                    if ((mMenu.MenuSelection == MenuSelection.AdjustPieceWeight) || (mMenu.MenuSelection == MenuSelection.AdjustNetWeight))
+                        mMenu.IncrementSelection = mMenu.IncrementSelection >= mMenu.Increments.Length - 1 ? mMenu.IncrementSelection : ++mMenu.IncrementSelection;
                     else
                     {
-                        --mintMenuSelection;
-                        DisplayInformation();
+                        --mMenu.intMenuSelection;
+                        mMenu.DisplayInformation(mSettings);
                     }
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Right:
-                    if ((mMenuSelection == (int)MenuSelection.AdjustPieceWeight) || (mMenuSelection == (int)MenuSelection.AdjustNetWeight))
-                        mintIncrementSelection = mintIncrementSelection <= 0 ? mintIncrementSelection : --mintIncrementSelection;
+                    if ((mMenu.MenuSelection == MenuSelection.AdjustPieceWeight) || (mMenu.MenuSelection == MenuSelection.AdjustNetWeight))
+                        mMenu.IncrementSelection = mMenu.IncrementSelection <= 0 ? mMenu.IncrementSelection : --mMenu.IncrementSelection;
                     else
                     {
-                        ++mintMenuSelection;
-                        DisplayInformation();
+                        ++mMenu.intMenuSelection;
+                        mMenu.DisplayInformation(mSettings);
                     }
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Up:
-                    if (mMenuSelection == (int)MenuSelection.AdjustPieceWeight)
+                    if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
                     {
-                        lcdBoard.SetPosition(1, 0);
-                        mSettings.PieceWeight = mSettings.PieceWeight + mIncrements[mIncrementSelection % mIncrements.Length];
-                        lcdBoard.Write(mSettings.PieceWeight.ToString("F3"));
+                        mSettings.PieceWeight = mSettings.PieceWeight + mMenu.Increments[mMenu.IncrementSelection];
+                        mMenu.DisplayPieceWeight(mSettings);
                     }
-                    else if (mMenuSelection == (int)MenuSelection.AdjustNetWeight)
+                    else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
                     {
-                        lcdBoard.SetPosition(1, 0);
-                        mSettings.NetWeightAdjustment = mSettings.NetWeightAdjustment + mIncrements[mIncrementSelection % mIncrements.Length];
-                        lcdBoard.Write(mSettings.NetWeightAdjustment.ToString("F3"));
+                        mSettings.NetWeightAdjustment = mSettings.NetWeightAdjustment + mMenu.Increments[mMenu.IncrementSelection];
+                        mMenu.DisplayNetWeightAdjustment(mSettings);
                     }
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Down:
-                    if (mMenuSelection == (int)MenuSelection.AdjustPieceWeight)
+                    if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
                     {
-                        lcdBoard.SetPosition(1, 0);
-                        mSettings.PieceWeight = mSettings.PieceWeight - mIncrements[mIncrementSelection % mIncrements.Length];
-                        mSettings.PieceWeight = mSettings.PieceWeight > 0 ? mSettings.PieceWeight : 0;
-                        lcdBoard.Write(mSettings.PieceWeight.ToString("F3"));
+                        mSettings.PieceWeight = mSettings.PieceWeight - mMenu.Increments[mMenu.IncrementSelection];
+                        mMenu.DisplayPieceWeight(mSettings);
                     }
-                    else if (mMenuSelection == (int)MenuSelection.AdjustNetWeight)
+                    else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
                     {
-                        lcdBoard.SetPosition(1, 0);
-                        mSettings.NetWeightAdjustment = mSettings.NetWeightAdjustment - mIncrements[mIncrementSelection % mIncrements.Length];
-                        lcdBoard.Write(mSettings.NetWeightAdjustment.ToString("F3"));
+                        mSettings.NetWeightAdjustment = mSettings.NetWeightAdjustment - mMenu.Increments[mMenu.IncrementSelection];
+                        mMenu.DisplayNetWeightAdjustment(mSettings);
                     }
                     break;
                 case (int)NetduinoRGBLCDShield.Button.Select:
-                    if (mMenuSelection == (int)MenuSelection.AdjustPieceWeight)
+                    if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
                     {
                         mSettings.StorePieceWeight();
-                        mDataRecieved = RecievedData.None;
-                        mintMenuSelection = (int)MenuSelection.ViewPieceWeight;
-                        DisplayInformation();
+                        mMenu.DataRecieved = RecievedData.None;
+                        mMenu.MenuSelection = MenuSelection.ViewPieceWeight;
+                        mMenu.DisplayInformation(mSettings);
                     }
-                    else if (mMenuSelection == (int)MenuSelection.AdjustNetWeight)
+                    else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
                     {
                         mSettings.StoreNetWeightAdjustment();
-                        mDataRecieved = RecievedData.None;
-                        mintMenuSelection = (int)MenuSelection.ViewNetWeightAdjustment;
-                        DisplayInformation();
+                        mMenu.DataRecieved = RecievedData.None;
+                        mMenu.MenuSelection = MenuSelection.ViewNetWeightAdjustment;
+                        mMenu.DisplayInformation(mSettings);
                     }
                     else
                         PerformAction();
@@ -222,9 +165,9 @@ namespace ScaleIndicatorPrinter
 
         private static void btnBoard_OnInterrupt(uint port, uint data, DateTime time)
         {
-            lcdBoard.Clear();
-            lcdBoard.SetPosition(0, 0);
-            lcdBoard.Write("Rebooting...");
+            mMenu.lcdBoard.Clear();
+            mMenu.lcdBoard.SetPosition(0, 0);
+            mMenu.lcdBoard.Write("Rebooting...");
             //Makes the LED blink 3 times
             BlinkOnboardLED(3, 300);
             PowerState.RebootDevice(false);
@@ -250,77 +193,30 @@ namespace ScaleIndicatorPrinter
 
         private static void PerformAction()
         {
-            lcdBoard.SetPosition(0, 0);
+            mMenu.lcdBoard.SetPosition(0, 0);
 
-            switch ((int)mMenuSelection % mintMenuCount)
+            switch (mMenu.AvailableMenuSelection)
             {
-                case (int)MenuSelection.PrintLabel:
+                case MenuSelection.PrintLabel:
                     mPrinterSerialPort.WriteString(Label.DefaultLabel);
                     break;
-                case (int)MenuSelection.Job:
-                    mDataRecieved = RecievedData.ScannerJobAndSuffix;
-                    lcdBoard.Write("Scan Job #...");
+                case MenuSelection.Job:
+                    mMenu.DataRecieved = RecievedData.ScannerJobAndSuffix;
+                    mMenu.lcdBoard.Write("Scan Job #...");
                     break;
-                case (int)MenuSelection.Operation:
-                    mDataRecieved = RecievedData.ScannerOperation;
-                    lcdBoard.Write("Scan Op #...");
+                case MenuSelection.Operation:
+                    mMenu.DataRecieved = RecievedData.ScannerOperation;
+                    mMenu.lcdBoard.Write("Scan Op #...");
                     break;
-                case (int)MenuSelection.ViewPieceWeight:
-                    mintMenuSelection = (int)MenuSelection.AdjustPieceWeight;
-                    mDataRecieved = RecievedData.None;
-                    lcdBoard.Write("Adj Pc Weight...");
+                case MenuSelection.ViewPieceWeight:
+                    mMenu.MenuSelection = MenuSelection.AdjustPieceWeight;
+                    mMenu.DataRecieved = RecievedData.None;
+                    mMenu.lcdBoard.Write("Adj Pc Weight...");
                     break;
-                case (int)MenuSelection.ViewNetWeightAdjustment:
-                    mintMenuSelection = (int)MenuSelection.AdjustNetWeight;
-                    mDataRecieved = RecievedData.None;
-                    lcdBoard.Write("Adj Net Weight...");
-                    break;
-            }
-        }
-
-        private static void DisplayInformation()
-        {
-            lcdBoard.Clear();
-            lcdBoard.SetPosition(0, 0);
-
-            mintMenuSelection = mintMenuSelection % mintMenuCount;
-            switch (mMenuSelection)
-            {
-                case (int)MenuSelection.PrintLabel:
-                    mDataRecieved = RecievedData.ScaleIndicator;
-                    lcdBoard.Write("Press Print...");
-                    lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write("To print a label");
-                    //Tell MUX what channel to listen on...
-                    mMux.SetPort(MuxChannel.C0);
-                    break;
-                case (int)MenuSelection.Job :
-                    mDataRecieved = RecievedData.None;
-                    lcdBoard.Write("Job:");
-                    lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(mSettings.JobNumber);
-                    //Tell MUX what channel to listen on...
-                    mMux.SetPort(MuxChannel.C1);
-                    break;
-                case (int)MenuSelection.Operation:
-                    mDataRecieved = RecievedData.None;
-                    lcdBoard.Write("Operation:");
-                    lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(mSettings.Operation.ToString());
-                    //Tell MUX what channel to listen on...
-                    mMux.SetPort(MuxChannel.C1);
-                    break;
-                case (int)MenuSelection.ViewPieceWeight:
-                    mDataRecieved = RecievedData.None;
-                    lcdBoard.Write("Piece Weight:");
-                    lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(mSettings.PieceWeight.ToString("F3"));
-                    break;
-                case (int)MenuSelection.ViewNetWeightAdjustment:
-                    mDataRecieved = RecievedData.None;
-                    lcdBoard.Write("Net Weight Adjustment:");
-                    lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(mSettings.NetWeightAdjustment.ToString("F3"));
+                case MenuSelection.ViewNetWeightAdjustment:
+                    mMenu.MenuSelection = MenuSelection.AdjustNetWeight;
+                    mMenu.DataRecieved = RecievedData.None;
+                    mMenu.lcdBoard.Write("Adj Net Weight...");
                     break;
             }
         }
@@ -331,7 +227,7 @@ namespace ScaleIndicatorPrinter
             if (strMessage == string.Empty || strMessage == null )
                 return;
 
-            switch (mDataRecieved)
+            switch (mMenu.DataRecieved)
             {
                 case RecievedData.ScaleIndicator:
                     var objIndicatorData = new IndicatorData(strMessage);
@@ -348,12 +244,12 @@ namespace ScaleIndicatorPrinter
                 case RecievedData.ScannerJobAndSuffix:
                     mSettings.JobNumber = strMessage;
                     mSettings.StoreJobNumber();
-                    DisplayInformation();
+                    mMenu.DisplayInformation(mSettings);
                     break;
                 case RecievedData.ScannerOperation:
                     mSettings.Operation = strMessage;
                     mSettings.StoreOperationNumber();
-                    DisplayInformation();
+                    mMenu.DisplayInformation(mSettings);
                     break;
             }
             
@@ -395,35 +291,8 @@ namespace ScaleIndicatorPrinter
             }
             catch (Exception objEx)
             {
-                DisplayError(objEx);
+                mMenu.DisplayError(objEx);
             }
-        }
-
-        public static void DisplayError(Exception objEx)
-        {
-            var strExceptionType = objEx.GetType().FullName;
-            lcdBoard.Clear();
-            lcdBoard.SetPosition(0, 0);
-
-            if (objEx.Message != null) //Write the Exception Message to the LCD Display...
-            {
-                lcdBoard.Write("ERR-" + objEx.Message.Substring(0, objEx.Message.Length - 1));
-                if (objEx.Message.Length >= 13)
-                {
-                    lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(objEx.Message.Substring(12, objEx.Message.Length - 12));
-                }
-            }
-            else //write the exception type out to the LCD Display...
-            {
-                lcdBoard.Write(strExceptionType.Substring(0, strExceptionType.Length - 1));
-                if (strExceptionType.Length >= 16)
-                {
-                    lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(strExceptionType.Substring(16, strExceptionType.Length - 16));
-                }
-            }
-                
         }
 
     }
