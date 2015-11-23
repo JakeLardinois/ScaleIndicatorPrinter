@@ -54,24 +54,14 @@ namespace ScaleIndicatorPrinter.Models
             }
         }
 
-        private int mintIncrementSelection { get; set; }
-        public int IncrementSelection { 
-            get { 
-                return System.Math.Abs(mintIncrementSelection); 
-            }
-            set
-            {
-                mintIncrementSelection = value;
-            }
-        }
-        public double[] Increments { get; set; }
-
         public void DisplayInformation(Settings objSettings)
         {
             lcdBoard.Clear();
             lcdBoard.SetPosition(0, 0);
 
-            switch (MenuSelection)
+            intMenuSelection = intMenuSelection % AvailableMenuCount;
+            Debug.Print("AvailableMenuSelection: " + AvailableMenuSelection);
+            switch (AvailableMenuSelection)
             {
                 case MenuSelection.PrintLabel:
                     DataRecieved = RecievedData.ScaleIndicator;
@@ -100,14 +90,12 @@ namespace ScaleIndicatorPrinter.Models
                 case MenuSelection.ViewPieceWeight:
                     DataRecieved = RecievedData.None;
                     lcdBoard.Write("Piece Weight:");
-                    lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(objSettings.PieceWeight.ToString("F3"));
+                    DisplayPieceWeight(objSettings);
                     break;
                 case MenuSelection.ViewNetWeightAdjustment:
                     DataRecieved = RecievedData.None;
                     lcdBoard.Write("Net Weight Adjustment:");
-                    lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(objSettings.NetWeightAdjustment.ToString("F3"));
+                    DisplayNetWeightAdjustment(objSettings);
                     break;
             }
         }

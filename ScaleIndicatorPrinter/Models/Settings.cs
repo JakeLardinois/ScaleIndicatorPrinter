@@ -74,6 +74,40 @@ namespace ScaleIndicatorPrinter.Models
         public string NetWeightAdjustmentFileName { get; set; }
         public double NetWeightAdjustment{ get; set; }
 
+        public double[] Increments { get; set; }
+        private int mintIncrementSelection { get; set; }
+        public int IncrementSelection
+        {
+            get
+            {
+                return mintIncrementSelection;
+            }
+            set
+            {
+                if (value >= 0 && value <= Increments.Length - 1)
+                    mintIncrementSelection = System.Math.Abs(value);
+            }
+        }
+
+        public void IncrementPieceWeight()
+        {
+            PieceWeight = PieceWeight + Increments[IncrementSelection];
+        }
+
+        public void DecrementPieceWeight()
+        {
+            PieceWeight = PieceWeight - Increments[IncrementSelection];
+        }
+
+        public void IncrementNetWeightAdjustment()
+        {
+            NetWeightAdjustment = NetWeightAdjustment + Increments[IncrementSelection];
+        }
+
+        public void DecrementNetWeightAdjustment()
+        {
+             NetWeightAdjustment = NetWeightAdjustment - Increments[IncrementSelection];
+        }
 
         public void RetrieveSettingsFromSDCard()
         {

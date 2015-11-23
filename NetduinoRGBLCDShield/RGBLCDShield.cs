@@ -159,6 +159,7 @@ namespace NetduinoRGBLCDShield
             for (int i = 0; i < buffer.Length; i++) buffer[i] = (byte)' ';
             this.write(buffer, false);
             SetPosition(row, 0);
+            Thread.Sleep(2);
         }
 
         public void Home()

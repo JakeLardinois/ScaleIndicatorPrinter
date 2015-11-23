@@ -42,11 +42,13 @@ namespace ScaleIndicatorPrinter
                 // Bind the interrupt handler to the pin's interrupt event.
                 btnShield.OnInterrupt += new NativeEventHandler(btnShield_OnInterrupt);
 
-                mMenu.Increments = new double[] { .001, .01, .1, 1, 10 };
-                mMenu.IncrementSelection = 3;
+                
                 mMenu.MenuSelection = MenuSelection.PrintLabel;
+                //mMenu.intMenuSelection = 0;
                 mMenu.Mux.SetPort(MuxChannel.C0);
 
+                mSettings.Increments = new double[] { .001, .01, .1, 1, 10 };
+                mSettings.IncrementSelection = 3;
                 mSettings.RootDirectoryPath = @"\SD\";
                 mSettings.LabelFormatFileName = "LabelFormat.txt";
                 mSettings.JobNumberFileName = "Job.txt";
@@ -98,51 +100,51 @@ namespace ScaleIndicatorPrinter
             //var ButtonPressed = mcp23017.DigitalRead((byte)ScaleIndicatorPrinter.Models.MCP23017.Command.MCP23017_INTCAPA); //to read the data from a specific pin.
 
             var InterruptBits = BitConverter.GetBytes(ButtonPressed);
-            switch (InterruptBits[0]) //the 0 value contains the button that was pressed...
+            switch ((NetduinoRGBLCDShield.Button)InterruptBits[0]) //the 0 value contains the button that was pressed...
             {
-                case (int)NetduinoRGBLCDShield.Button.Left:
+                case NetduinoRGBLCDShield.Button.Left:
                     if ((mMenu.MenuSelection == MenuSelection.AdjustPieceWeight) || (mMenu.MenuSelection == MenuSelection.AdjustNetWeight))
-                        mMenu.IncrementSelection = mMenu.IncrementSelection >= mMenu.Increments.Length - 1 ? mMenu.IncrementSelection : ++mMenu.IncrementSelection;
+                       ++mSettings.IncrementSelection;
                     else
                     {
                         --mMenu.intMenuSelection;
                         mMenu.DisplayInformation(mSettings);
                     }
                     break;
-                case (int)NetduinoRGBLCDShield.Button.Right:
+                case NetduinoRGBLCDShield.Button.Right:
                     if ((mMenu.MenuSelection == MenuSelection.AdjustPieceWeight) || (mMenu.MenuSelection == MenuSelection.AdjustNetWeight))
-                        mMenu.IncrementSelection = mMenu.IncrementSelection <= 0 ? mMenu.IncrementSelection : --mMenu.IncrementSelection;
+                        --mSettings.IncrementSelection;
                     else
                     {
                         ++mMenu.intMenuSelection;
                         mMenu.DisplayInformation(mSettings);
                     }
                     break;
-                case (int)NetduinoRGBLCDShield.Button.Up:
+                case NetduinoRGBLCDShield.Button.Up:
                     if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
                     {
-                        mSettings.PieceWeight = mSettings.PieceWeight + mMenu.Increments[mMenu.IncrementSelection];
+                        mSettings.IncrementPieceWeight(); 
                         mMenu.DisplayPieceWeight(mSettings);
                     }
                     else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
                     {
-                        mSettings.NetWeightAdjustment = mSettings.NetWeightAdjustment + mMenu.Increments[mMenu.IncrementSelection];
+                        mSettings.IncrementNetWeightAdjustment();
                         mMenu.DisplayNetWeightAdjustment(mSettings);
                     }
                     break;
-                case (int)NetduinoRGBLCDShield.Button.Down:
+                case NetduinoRGBLCDShield.Button.Down:
                     if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
                     {
-                        mSettings.PieceWeight = mSettings.PieceWeight - mMenu.Increments[mMenu.IncrementSelection];
+                        mSettings.DecrementPieceWeight();
                         mMenu.DisplayPieceWeight(mSettings);
                     }
                     else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
                     {
-                        mSettings.NetWeightAdjustment = mSettings.NetWeightAdjustment - mMenu.Increments[mMenu.IncrementSelection];
+                        mSettings.DecrementNetWeightAdjustment();
                         mMenu.DisplayNetWeightAdjustment(mSettings);
                     }
                     break;
-                case (int)NetduinoRGBLCDShield.Button.Select:
+                case NetduinoRGBLCDShield.Button.Select:
                     if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
                     {
                         mSettings.StorePieceWeight();
