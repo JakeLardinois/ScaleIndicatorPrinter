@@ -14,9 +14,19 @@ namespace ScaleIndicatorPrinter.Models
 
         public string LabelFormatFileName { get; set; }
         public string LabelFormat { get; set; }
+        public void StoreLabelFormat()
+        {
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + LabelFormatFileName))
+                objStreamWriter.WriteLine(Job);
+        }
 
         public string JobNumberFileName { get; set; }
         public string JobNumber { get; set; }
+        public void StoreJobNumber()
+        {
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + JobNumberFileName))
+                objStreamWriter.WriteLine(Job);
+        }
         public string Job { 
             get {
                 if (JobNumber.IndexOf('-') != -1)
@@ -45,6 +55,11 @@ namespace ScaleIndicatorPrinter.Models
 
         public string OperationFileName { get; set; }
         public string Operation { get; set; }
+        public void StoreOperationNumber()
+        {
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + OperationFileName))
+                objStreamWriter.WriteLine(Operation);
+        }
         public int OperationNumber
         {
             get
@@ -63,16 +78,11 @@ namespace ScaleIndicatorPrinter.Models
 
         public string ShopTrakTransactionsURLFileName { get; set; }
         public string ShopTrakTransactionsURL { get; set; }
-
-        public string PieceWeightFileName { get; set; }
-        private double mdblPieceWeight { get; set; }
-        public double PieceWeight { 
-            get { return mdblPieceWeight; } 
-            set { mdblPieceWeight = value > 0 ? value : 0; } 
+        public void StoreShopTrakTransactionsURL()
+        {
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + ShopTrakTransactionsURLFileName))
+                objStreamWriter.WriteLine(Job);
         }
-
-        public string NetWeightAdjustmentFileName { get; set; }
-        public double NetWeightAdjustment{ get; set; }
 
         public double[] Increments { get; set; }
         private int mintIncrementSelection { get; set; }
@@ -89,21 +99,37 @@ namespace ScaleIndicatorPrinter.Models
             }
         }
 
+        public string PieceWeightFileName { get; set; }
+        private double mdblPieceWeight { get; set; }
+        public double PieceWeight { 
+            get { return mdblPieceWeight; } 
+            set { mdblPieceWeight = value > 0 ? value : 0; } 
+        }
+        public void StorePieceWeight()
+        {
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + PieceWeightFileName))
+                objStreamWriter.WriteLine(PieceWeight);
+        }
         public void IncrementPieceWeight()
         {
             PieceWeight = PieceWeight + Increments[IncrementSelection];
         }
-
         public void DecrementPieceWeight()
         {
             PieceWeight = PieceWeight - Increments[IncrementSelection];
         }
 
+        public string NetWeightAdjustmentFileName { get; set; }
+        public double NetWeightAdjustment{ get; set; }
+        public void StoreNetWeightAdjustment()
+        {
+            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + NetWeightAdjustmentFileName))
+                objStreamWriter.WriteLine(NetWeightAdjustment);
+        }
         public void IncrementNetWeightAdjustment()
         {
             NetWeightAdjustment = NetWeightAdjustment + Increments[IncrementSelection];
         }
-
         public void DecrementNetWeightAdjustment()
         {
              NetWeightAdjustment = NetWeightAdjustment - Increments[IncrementSelection];
@@ -207,42 +233,6 @@ namespace ScaleIndicatorPrinter.Models
                 throw new ApplicationException(FileName + " is not a Valid " + InformationTypes[(int)Information] + " Data File!!");
             }
                 
-        }
-
-        public void StoreLabelFormat()
-        {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + LabelFormatFileName))
-                objStreamWriter.WriteLine(Job);
-        }
-
-        public void StoreJobNumber()
-        {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + JobNumberFileName))
-                objStreamWriter.WriteLine(Job);
-        }
-
-        public void StoreOperationNumber()
-        {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + OperationFileName))
-                objStreamWriter.WriteLine(Operation);
-        }
-
-        public void StoreShopTrakTransactionsURL()
-        {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + ShopTrakTransactionsURLFileName))
-                objStreamWriter.WriteLine(Job);
-        }
-
-        public void StorePieceWeight()
-        {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + PieceWeightFileName))
-                objStreamWriter.WriteLine(PieceWeight);
-        }
-
-        public void StoreNetWeightAdjustment()
-        {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + NetWeightAdjustmentFileName))
-                objStreamWriter.WriteLine(NetWeightAdjustment);
         }
     }
 }

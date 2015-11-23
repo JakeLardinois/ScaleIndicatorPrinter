@@ -21,9 +21,12 @@ namespace ScaleIndicatorPrinter
     {
         private static MySerialPort mIndicatorScannerSerialPort;
         private static MySerialPort mPrinterSerialPort;
-        
+
+        private static CD74HC4067 Mux { get; set; }
+        private static MCP23017 mcp23017 { get; set; }
+
         private static Settings mSettings { get; set; }
-        public static Menu mMenu { get; set; }
+        private static Menu mMenu { get; set; }
 
         private static InterruptPort btnBoard { get; set; }
         private static OutputPort onboardLED = new OutputPort(Pins.ONBOARD_LED, false);
@@ -34,19 +37,27 @@ namespace ScaleIndicatorPrinter
         {
             try
             {
-                mMenu = new Menu();//Configure this one first so that errors can be written to the LCD Shield...
-                mSettings = new Settings();
+                mMenu = new Menu();//Configure this one first so that errors can be written to the LCD Shield
+                var mcp23017 = new MCP23017(); // the MCP is what allows us to talk with the RGB LCD panel
+                mMenu.lcdBoard = new RGBLCDShield(mcp23017);
+                mMenu.MenuSelection = MenuSelection.PrintLabel;
 
-                // Setup the interrupt port for button presses from the LCD Shield
+
+                //Setup the interrupt port for button presses from the LCD Shield. 
+                //Here I have the Interrupt pin from the LCD Shield (configured in the MCP23017 class) going to the Netduino Digital Pin 5
                 btnShield = new InterruptPort(Pins.GPIO_PIN_D5, true, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeLow);
                 // Bind the interrupt handler to the pin's interrupt event.
                 btnShield.OnInterrupt += new NativeEventHandler(btnShield_OnInterrupt);
 
-                
-                mMenu.MenuSelection = MenuSelection.PrintLabel;
-                //mMenu.intMenuSelection = 0;
-                mMenu.Mux.SetPort(MuxChannel.C0);
+                //Configure the MUX which allows me to expand my serial ports. Here I am using digital pins 9 thru 10 to send the necessary signals to switch my MUX channels
+                OutputPort DigitalPin9 = new OutputPort(Pins.GPIO_PIN_D9, false); //Goes to S0
+                OutputPort DigitalPin10 = new OutputPort(Pins.GPIO_PIN_D10, false);//Goes to S1
+                OutputPort DigitalPin11 = new OutputPort(Pins.GPIO_PIN_D11, false);//Goes to S2
+                OutputPort DigitalPin12 = new OutputPort(Pins.GPIO_PIN_D12, false);//Goes to S3
+                Mux = new CD74HC4067(DigitalPin9, DigitalPin10, DigitalPin11, DigitalPin12);
+                Mux.SetPort(MuxChannel.C0); //default it to C0 which is data coming in from the Indicators Serial Port
 
+                mSettings = new Settings();
                 mSettings.Increments = new double[] { .001, .01, .1, 1, 10 };
                 mSettings.IncrementSelection = 3;
                 mSettings.RootDirectoryPath = @"\SD\";
@@ -74,17 +85,17 @@ namespace ScaleIndicatorPrinter
                 // Create an event handler for the button
                 btnBoard.OnInterrupt += new NativeEventHandler(btnBoard_OnInterrupt);
 
-                //Display appropriarate information to the user...
+                //Display appropriate information to the user...
                 mMenu.DisplayInformation(mSettings);
             }
             catch (Exception objEx)
             {
-                Debug.Print("Exception caught\r\n");
+                Debug.Print("Exception caught in Main()\r\n");
                 Debug.Print(objEx.Message);
                 mMenu.DisplayError(objEx);
             }
 
-            // we are done
+            //We are done. The thread must sleep or else the netduino turns off...
             Thread.Sleep(Timeout.Infinite);
         }
 
@@ -96,7 +107,7 @@ namespace ScaleIndicatorPrinter
              * I wasn't able to ascertain what those other numbers represented, but I did ascertain that the hex value at the end contained the data of the button that was pressed.  From there I discovered the BitConverter.GetBytes()
              * function that separated the button press number from the other data and so I could use it to grab the button pressed and then use the Button Enumeration to check which button was pressed.
              */
-            var ButtonPressed = mMenu.mcp23017.ReadGpioAB();
+            var ButtonPressed = mcp23017.ReadGpioAB();
             //var ButtonPressed = mcp23017.DigitalRead((byte)ScaleIndicatorPrinter.Models.MCP23017.Command.MCP23017_INTCAPA); //to read the data from a specific pin.
 
             var InterruptBits = BitConverter.GetBytes(ButtonPressed);
@@ -107,7 +118,7 @@ namespace ScaleIndicatorPrinter
                        ++mSettings.IncrementSelection;
                     else
                     {
-                        --mMenu.intMenuSelection;
+                        mMenu.GoToPreviousAvailableMenuSelection();
                         mMenu.DisplayInformation(mSettings);
                     }
                     break;
@@ -116,46 +127,34 @@ namespace ScaleIndicatorPrinter
                         --mSettings.IncrementSelection;
                     else
                     {
-                        ++mMenu.intMenuSelection;
+                        mMenu.GoToNextAvailableMenuSelection();
                         mMenu.DisplayInformation(mSettings);
                     }
                     break;
                 case NetduinoRGBLCDShield.Button.Up:
                     if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
-                    {
-                        mSettings.IncrementPieceWeight(); 
-                        mMenu.DisplayPieceWeight(mSettings);
-                    }
+                        mSettings.IncrementPieceWeight();
                     else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
-                    {
                         mSettings.IncrementNetWeightAdjustment();
-                        mMenu.DisplayNetWeightAdjustment(mSettings);
-                    }
+                    mMenu.DisplayInformation(mSettings);
                     break;
                 case NetduinoRGBLCDShield.Button.Down:
                     if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
-                    {
                         mSettings.DecrementPieceWeight();
-                        mMenu.DisplayPieceWeight(mSettings);
-                    }
                     else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
-                    {
                         mSettings.DecrementNetWeightAdjustment();
-                        mMenu.DisplayNetWeightAdjustment(mSettings);
-                    }
+                    mMenu.DisplayInformation(mSettings);
                     break;
                 case NetduinoRGBLCDShield.Button.Select:
                     if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
                     {
                         mSettings.StorePieceWeight();
-                        mMenu.DataRecieved = RecievedData.None;
                         mMenu.MenuSelection = MenuSelection.ViewPieceWeight;
                         mMenu.DisplayInformation(mSettings);
                     }
                     else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
                     {
                         mSettings.StoreNetWeightAdjustment();
-                        mMenu.DataRecieved = RecievedData.None;
                         mMenu.MenuSelection = MenuSelection.ViewNetWeightAdjustment;
                         mMenu.DisplayInformation(mSettings);
                     }
@@ -167,12 +166,7 @@ namespace ScaleIndicatorPrinter
 
         private static void btnBoard_OnInterrupt(uint port, uint data, DateTime time)
         {
-            mMenu.lcdBoard.Clear();
-            mMenu.lcdBoard.SetPosition(0, 0);
-            mMenu.lcdBoard.Write("Rebooting...");
-            //Makes the LED blink 3 times
-            BlinkOnboardLED(3, 300);
-            PowerState.RebootDevice(false);
+            Reboot();
 
             //For development purposes...
             #region 
@@ -184,6 +178,15 @@ namespace ScaleIndicatorPrinter
             #endregion
         }
 
+        private static void Reboot()
+        {
+            mMenu.lcdBoard.Clear();
+            mMenu.lcdBoard.SetPosition(0, 0);
+            mMenu.lcdBoard.Write("Rebooting...");
+            //Makes the LED blink 3 times
+            BlinkOnboardLED(3, 300);
+            PowerState.RebootDevice(false);
+        }
         private static void BlinkOnboardLED(int NoOfTimes, int WaitPeriod)
         {
             for (int intCounter = 2; intCounter < NoOfTimes * 2 + 1; intCounter++)
@@ -197,30 +200,33 @@ namespace ScaleIndicatorPrinter
         {
             mMenu.lcdBoard.SetPosition(0, 0);
 
-            switch (mMenu.AvailableMenuSelection)
+            switch (mMenu.MenuSelection)
             {
                 case MenuSelection.PrintLabel:
+                    //Tell MUX what channel to write to...
+                    Mux.SetPort(MuxChannel.C0);
                     mPrinterSerialPort.WriteString(Label.DefaultLabel);
                     break;
                 case MenuSelection.Job:
                     mMenu.DataRecieved = RecievedData.ScannerJobAndSuffix;
-                    mMenu.lcdBoard.Write("Scan Job #...");
+                    //Tell MUX what channel to listen on...
+                    Mux.SetPort(MuxChannel.C1);
                     break;
                 case MenuSelection.Operation:
                     mMenu.DataRecieved = RecievedData.ScannerOperation;
-                    mMenu.lcdBoard.Write("Scan Op #...");
+                    //Tell MUX what channel to listen on...
+                    Mux.SetPort(MuxChannel.C1);
                     break;
                 case MenuSelection.ViewPieceWeight:
-                    mMenu.MenuSelection = MenuSelection.AdjustPieceWeight;
                     mMenu.DataRecieved = RecievedData.None;
-                    mMenu.lcdBoard.Write("Adj Pc Weight...");
+                    mMenu.MenuSelection = MenuSelection.AdjustPieceWeight;
                     break;
                 case MenuSelection.ViewNetWeightAdjustment:
-                    mMenu.MenuSelection = MenuSelection.AdjustNetWeight;
                     mMenu.DataRecieved = RecievedData.None;
-                    mMenu.lcdBoard.Write("Adj Net Weight...");
+                    mMenu.MenuSelection = MenuSelection.AdjustNetWeight;
                     break;
             }
+            mMenu.DisplayInformation(mSettings);
         }
 
         private static void IndicatorScannerSerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
@@ -236,6 +242,7 @@ namespace ScaleIndicatorPrinter
 
                     if (objIndicatorData.HasValidDataString)
                     {
+                        mMenu.DataRecieved = RecievedData.None;
                         /*A new thread must be started in order for the WebGet function to work properly; otherwise WebGet(objIndicatorData) would just silently fail...
                          * http://www.codeproject.com/Articles/795829/Multithreading-with-Netduino-and-NET-Microframework
                          * https://www.youtube.com/watch?v=YZOrORB88-s */
@@ -246,11 +253,13 @@ namespace ScaleIndicatorPrinter
                 case RecievedData.ScannerJobAndSuffix:
                     mSettings.JobNumber = strMessage;
                     mSettings.StoreJobNumber();
+                    mMenu.DataRecieved = RecievedData.None;
                     mMenu.DisplayInformation(mSettings);
                     break;
                 case RecievedData.ScannerOperation:
                     mSettings.Operation = strMessage;
                     mSettings.StoreOperationNumber();
+                    mMenu.DataRecieved = RecievedData.None;
                     mMenu.DisplayInformation(mSettings);
                     break;
             }
@@ -288,11 +297,17 @@ namespace ScaleIndicatorPrinter
                 strBldrEmployees.Remove(strBldrEmployees.ToString().LastIndexOf(","), 1); //remove the last comma from the string
 
                 var Pieces = (objIndicatorData.NetWeight + mSettings.NetWeightAdjustment) / mSettings.PieceWeight;
-                var objLabel = new Label(new string[] { Item, mSettings.JobNumber, mSettings.OperationNumber.ToString("D3"), strBldrEmployees.ToString(), ((int)Pieces).ToString(), CurrentDateTime.ToString("MM/dd/yy h:mm:ss tt"), CurrentDateTime.ToString("dddd") });
+
+                //Instantiate my label so that I can populate the Format property with the value pulled from the SDCard.
+                var objLabel = new Label(new string[] { Item, mSettings.JobNumber, mSettings.OperationNumber.ToString("D3"), strBldrEmployees.ToString(), 
+                    ((int)Pieces).ToString(), CurrentDateTime.ToString("MM/dd/yy h:mm:ss tt"), CurrentDateTime.ToString("dddd") });
+                objLabel.LabelFormat = mSettings.LabelFormat;
                 mPrinterSerialPort.WriteString(objLabel.LabelText);
             }
             catch (Exception objEx)
             {
+                Debug.Print("Exception caught in WebGet()\r\n");
+                Debug.Print(objEx.Message);
                 mMenu.DisplayError(objEx);
             }
         }
