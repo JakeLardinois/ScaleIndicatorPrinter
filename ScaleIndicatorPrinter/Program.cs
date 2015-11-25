@@ -37,11 +37,9 @@ namespace ScaleIndicatorPrinter
         {
             try
             {
-                mMenu = new Menu();//Configure this one first so that errors can be written to the LCD Shield
-                var mcp23017 = new MCP23017(); // the MCP is what allows us to talk with the RGB LCD panel
-                mMenu.lcdBoard = new RGBLCDShield(mcp23017);
+                mcp23017 = new MCP23017();//the MCP is what allows us to talk with the RGB LCD panel. I need it in this class so I can read the button presses from the User...
+                mMenu = new Menu(mcp23017);//Configure this one first so that errors can be written to the LCD Shield
                 mMenu.MenuSelection = MenuSelection.PrintLabel;
-
 
                 //Setup the interrupt port for button presses from the LCD Shield. 
                 //Here I have the Interrupt pin from the LCD Shield (configured in the MCP23017 class) going to the Netduino Digital Pin 5
@@ -58,7 +56,7 @@ namespace ScaleIndicatorPrinter
                 Mux.SetPort(MuxChannel.C0); //default it to C0 which is data coming in from the Indicators Serial Port
 
                 mSettings = new Settings();
-                mSettings.Increments = new double[] { .001, .01, .1, 1, 10 };
+                mSettings.Increments = new double[] { .001, .01, .1, 1, 10, 100 };
                 mSettings.IncrementSelection = 3;
                 mSettings.RootDirectoryPath = @"\SD\";
                 mSettings.LabelFormatFileName = "LabelFormat.txt";
@@ -67,7 +65,10 @@ namespace ScaleIndicatorPrinter
                 mSettings.ShopTrakTransactionsURLFileName = "ShopTrakTransactionsURL.txt";
                 mSettings.PieceWeightFileName = "PieceWeight.txt";
                 mSettings.NetWeightAdjustmentFileName = "NetWeightAdjustment.txt";
+                mSettings.BackgroundColorFileName = "BackgroundColor.txt";
                 mSettings.RetrieveSettingsFromSDCard();
+
+                mMenu.SetBackLightColor(mSettings.BackgroundColor);
 
                 // initialize the serial port for data being input via COM1
                 mIndicatorScannerSerialPort = new MySerialPort(SerialPorts.COM1, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
@@ -101,72 +102,120 @@ namespace ScaleIndicatorPrinter
 
         public static void btnShield_OnInterrupt(UInt32 data1, UInt32 data2, DateTime time)
         {
-            /*For some reason this event returns data multiple times when a button gets pressed. If you wait a little bit in the debugger, then the variable actually eventually changes to a value that contains a button's value.
+
+            try
+            {
+                /*For some reason this event returns data multiple times when a button gets pressed. If you wait a little bit in the debugger, then the variable actually eventually changes to a value that contains a button's value.
              * What I first observed was that a number such as 34304 was returned multiple times before a number such as 34305 would be returned. 34304=0x8600=NoButton, 34305=0x8601=SelectButton (which was indicated as 0x01 in the 
              * Select button Enum). So I initially designed the loop to check for 34304, 34305, 34306, etc. to determine which button was pressed.  However, when I plugged in a different LED Shield, I noticed that the numbers changed
              * I wasn't able to ascertain what those other numbers represented, but I did ascertain that the hex value at the end contained the data of the button that was pressed.  From there I discovered the BitConverter.GetBytes()
              * function that separated the button press number from the other data and so I could use it to grab the button pressed and then use the Button Enumeration to check which button was pressed.
              */
-            var ButtonPressed = mcp23017.ReadGpioAB();
-            //var ButtonPressed = mcp23017.DigitalRead((byte)ScaleIndicatorPrinter.Models.MCP23017.Command.MCP23017_INTCAPA); //to read the data from a specific pin.
+                var ButtonPressed = mcp23017.ReadGpioAB();
+                //var ButtonPressed = mcp23017.DigitalRead((byte)ScaleIndicatorPrinter.Models.MCP23017.Command.MCP23017_INTCAPA); //to read the data from a specific pin.
 
-            var InterruptBits = BitConverter.GetBytes(ButtonPressed);
-            switch ((NetduinoRGBLCDShield.Button)InterruptBits[0]) //the 0 value contains the button that was pressed...
+
+                var InterruptBits = BitConverter.GetBytes(ButtonPressed);
+
+                /*the 0 value contains the button that was pressed... I had an issue with this when I coded the functionality to change the background display because as soon as I changed the Background color from the default of White (which 
+                 * was set in the RGBLCDShield class constructor) my buttons on the LCD shield would stop working. I discovered that only the first 5 bits of the InterruptBits[0] byte contained the button that was pressed.  What was happening was
+                 * that when I changed the LCD backlight color, additional bits were being added to the front of the byte and so the integer that was cast with (NetduinoRGBLCDShield.Button)InterruptBits[0] in my switch statement did not recognize
+                 * a button press...  I observed this as my UI stopping working and had a LOT of difficulty troubleshooting! I added the below default to the Switch statement so that future debugging sessions would verify that my button events were
+                 * firing, but I will still recieve a lot of false posotives since a single button press will also send empty bytes... At first I tried to shift the bits using (NetduinoRGBLCDShield.Button)(InterruptBits[0] >> 3)
+                 * which would shift the left (if InterruptBits[0] was 1000, the statement would yield 62) but realized that this wasn't the proper method since I was still keeping the higher order bits. The solution was to perform a bitwise AND operation (&) on the values using a mask
+                 * that masked out the pertinant bits (in this case 31 or 0x1F or 11111) so that if InterruptBits[0] was set at 1,000 (1111101000 in binary) then an AND against 31 (11111 binary) would yield 8 (1111101000 AND 0000011111 = 1000)
+                 */
+                var ButtonValue = (InterruptBits[0] & 0x1F);
+                if (ButtonValue == 0)
+                    return;
+                Debug.Print("Pressed Button Value is: " + ButtonValue);
+                Debug.Print("Menu selection is: " + mMenu.MenuSelection);
+                switch ((NetduinoRGBLCDShield.Button)ButtonValue)
+                {
+                    case NetduinoRGBLCDShield.Button.Left:
+                        if ((mMenu.MenuSelection == MenuSelection.AdjustPieceWeight) || (mMenu.MenuSelection == MenuSelection.AdjustNetWeight))
+                            ++mSettings.IncrementSelection;
+                        else if (mMenu.MenuSelection == MenuSelection.ChangeBackgroundColor)
+                        {
+                            mSettings.NextBackgroundColor();
+                            mMenu.SetBackLightColor(mSettings.BackgroundColor);
+                            mMenu.DisplayInformation(mSettings);
+                        }
+                        else
+                        {
+                            mMenu.GoToPreviousAvailableMenuSelection();
+                            mMenu.DisplayInformation(mSettings);
+                        }
+                        break;
+                    case NetduinoRGBLCDShield.Button.Right:
+                        if ((mMenu.MenuSelection == MenuSelection.AdjustPieceWeight) || (mMenu.MenuSelection == MenuSelection.AdjustNetWeight))
+                            --mSettings.IncrementSelection;
+                        else if (mMenu.MenuSelection == MenuSelection.ChangeBackgroundColor)
+                        {
+                            mSettings.PreviousBackgroundColor();
+                            mMenu.SetBackLightColor(mSettings.BackgroundColor);
+                            mMenu.DisplayInformation(mSettings);
+                        }
+                        else
+                        {
+                            mMenu.GoToNextAvailableMenuSelection();
+                            mMenu.DisplayInformation(mSettings);
+                        }
+                        break;
+                    case NetduinoRGBLCDShield.Button.Up:
+                        if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
+                            mSettings.IncrementPieceWeight();
+                        else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
+                            mSettings.IncrementNetWeightAdjustment();
+                        mMenu.DisplayInformation(mSettings);
+                        break;
+                    case NetduinoRGBLCDShield.Button.Down:
+                        if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
+                            mSettings.DecrementPieceWeight();
+                        else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
+                            mSettings.DecrementNetWeightAdjustment();
+                        mMenu.DisplayInformation(mSettings);
+                        break;
+                    case NetduinoRGBLCDShield.Button.Select:
+                        if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
+                        {
+                            mSettings.StorePieceWeight();
+                            mMenu.MenuSelection = MenuSelection.ViewPieceWeight;
+                            mMenu.DisplayInformation(mSettings);
+                        }
+                        else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
+                        {
+                            mSettings.StoreNetWeightAdjustment();
+                            mMenu.MenuSelection = MenuSelection.ViewNetWeightAdjustment;
+                            mMenu.DisplayInformation(mSettings);
+                        }
+                        else if (mMenu.MenuSelection == MenuSelection.ChangeBackgroundColor)
+                        {
+                            mSettings.StoreBackgroundColor();
+                            mMenu.SetBackLightColor(mSettings.BackgroundColor);
+                            mMenu.MenuSelection = MenuSelection.ViewBackgroundColor;
+                            mMenu.DisplayInformation(mSettings);
+                        }
+                        else
+                            PerformAction();
+                        break;
+                    default:
+                        Debug.Print("Unrecognized Button...");
+                        throw new Exception("Unrecognized Button Pressed");
+                }
+            }
+            catch(Exception objEx)
             {
-                case NetduinoRGBLCDShield.Button.Left:
-                    if ((mMenu.MenuSelection == MenuSelection.AdjustPieceWeight) || (mMenu.MenuSelection == MenuSelection.AdjustNetWeight))
-                       ++mSettings.IncrementSelection;
-                    else
-                    {
-                        mMenu.GoToPreviousAvailableMenuSelection();
-                        mMenu.DisplayInformation(mSettings);
-                    }
-                    break;
-                case NetduinoRGBLCDShield.Button.Right:
-                    if ((mMenu.MenuSelection == MenuSelection.AdjustPieceWeight) || (mMenu.MenuSelection == MenuSelection.AdjustNetWeight))
-                        --mSettings.IncrementSelection;
-                    else
-                    {
-                        mMenu.GoToNextAvailableMenuSelection();
-                        mMenu.DisplayInformation(mSettings);
-                    }
-                    break;
-                case NetduinoRGBLCDShield.Button.Up:
-                    if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
-                        mSettings.IncrementPieceWeight();
-                    else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
-                        mSettings.IncrementNetWeightAdjustment();
-                    mMenu.DisplayInformation(mSettings);
-                    break;
-                case NetduinoRGBLCDShield.Button.Down:
-                    if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
-                        mSettings.DecrementPieceWeight();
-                    else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
-                        mSettings.DecrementNetWeightAdjustment();
-                    mMenu.DisplayInformation(mSettings);
-                    break;
-                case NetduinoRGBLCDShield.Button.Select:
-                    if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
-                    {
-                        mSettings.StorePieceWeight();
-                        mMenu.MenuSelection = MenuSelection.ViewPieceWeight;
-                        mMenu.DisplayInformation(mSettings);
-                    }
-                    else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
-                    {
-                        mSettings.StoreNetWeightAdjustment();
-                        mMenu.MenuSelection = MenuSelection.ViewNetWeightAdjustment;
-                        mMenu.DisplayInformation(mSettings);
-                    }
-                    else
-                        PerformAction();
-                    break;
+                Debug.Print("Exception caught in btnShield_OnInterrupt()\r\n");
+                Debug.Print(objEx.Message);
+                mMenu.DisplayError(objEx);
             }
         }
 
         private static void btnBoard_OnInterrupt(uint port, uint data, DateTime time)
         {
-            Reboot();
+            mMenu.MenuSelection = MenuSelection.Reboot;
+            PerformAction();
 
             //For development purposes...
             #region 
@@ -178,17 +227,9 @@ namespace ScaleIndicatorPrinter
             #endregion
         }
 
-        private static void Reboot()
-        {
-            mMenu.lcdBoard.Clear();
-            mMenu.lcdBoard.SetPosition(0, 0);
-            mMenu.lcdBoard.Write("Rebooting...");
-            //Makes the LED blink 3 times
-            BlinkOnboardLED(3, 300);
-            PowerState.RebootDevice(false);
-        }
         private static void BlinkOnboardLED(int NoOfTimes, int WaitPeriod)
         {
+            Debug.Print("Blinking LED");
             for (int intCounter = 2; intCounter < NoOfTimes * 2 + 1; intCounter++)
             {
                 onboardLED.Write(intCounter % 2 == 1);
@@ -198,32 +239,50 @@ namespace ScaleIndicatorPrinter
 
         private static void PerformAction()
         {
-            mMenu.lcdBoard.SetPosition(0, 0);
-
             switch (mMenu.MenuSelection)
             {
                 case MenuSelection.PrintLabel:
                     //Tell MUX what channel to write to...
+                    Debug.Print("Set Mux to Channel 0...");
                     Mux.SetPort(MuxChannel.C0);
+                    Debug.Print("Write Default label to Serial Port...");
                     mPrinterSerialPort.WriteString(Label.DefaultLabel);
                     break;
                 case MenuSelection.Job:
                     mMenu.DataRecieved = RecievedData.ScannerJobAndSuffix;
                     //Tell MUX what channel to listen on...
+                    Debug.Print("Set Mux to Channel 1...");
                     Mux.SetPort(MuxChannel.C1);
+                    Debug.Print("Wait for Job Number from Scanner...");
                     break;
                 case MenuSelection.Operation:
                     mMenu.DataRecieved = RecievedData.ScannerOperation;
                     //Tell MUX what channel to listen on...
+                    Debug.Print("Set Mux to Channel 1...");
                     Mux.SetPort(MuxChannel.C1);
+                    Debug.Print("Wait for Operation from Scanner...");
                     break;
                 case MenuSelection.ViewPieceWeight:
                     mMenu.DataRecieved = RecievedData.None;
+                    Debug.Print("Set Menu to Adjust Piece Weight...");
                     mMenu.MenuSelection = MenuSelection.AdjustPieceWeight;
                     break;
                 case MenuSelection.ViewNetWeightAdjustment:
                     mMenu.DataRecieved = RecievedData.None;
+                    Debug.Print("Set Menu to Adjust Net Weight...");
                     mMenu.MenuSelection = MenuSelection.AdjustNetWeight;
+                    break;
+                case MenuSelection.ViewBackgroundColor:
+                    mMenu.DataRecieved = RecievedData.None;
+                    Debug.Print("Set Menu to Adjust Background Color...");
+                    mMenu.MenuSelection = MenuSelection.ChangeBackgroundColor;
+                    break;
+                case MenuSelection.Reboot:
+                    mMenu.MenuSelection = MenuSelection.Rebooting;
+                    mMenu.DisplayInformation(mSettings);
+                    BlinkOnboardLED(3, 300);
+                    Debug.Print("Rebooting...");
+                    PowerState.RebootDevice(false);
                     break;
             }
             mMenu.DisplayInformation(mSettings);
@@ -235,6 +294,8 @@ namespace ScaleIndicatorPrinter
             if (strMessage == string.Empty || strMessage == null )
                 return;
 
+            Debug.Print("The type of data expected is: " + mMenu.DataRecieved);
+            Debug.Print("Data contents recieved from the Serial Port: " + strMessage);
             switch (mMenu.DataRecieved)
             {
                 case RecievedData.ScaleIndicator:
@@ -242,6 +303,7 @@ namespace ScaleIndicatorPrinter
 
                     if (objIndicatorData.HasValidDataString)
                     {
+                        Debug.Print("Valid Data was sent from the Indicator...");
                         mMenu.DataRecieved = RecievedData.None;
                         /*A new thread must be started in order for the WebGet function to work properly; otherwise WebGet(objIndicatorData) would just silently fail...
                          * http://www.codeproject.com/Articles/795829/Multithreading-with-Netduino-and-NET-Microframework
@@ -271,11 +333,12 @@ namespace ScaleIndicatorPrinter
             try
             {
                 var URL = mSettings.ShopTrakTransactionsURL.SetParameters(new string[] { mSettings.Job, mSettings.Suffix.ToString(), mSettings.Operation.ToString() });
+                Debug.Print("WebGet URL is: " + URL);
                 var objURI = new Uri(URL);
                 var webClient = new HTTP_Client(new IntegratedSocket(objURI.Host, (ushort)objURI.Port));
                 var response = webClient.Get(objURI.AbsolutePath);
 
-
+                Debug.Print("Data recieved from URL is:\r\n" + response.ResponseBody);
                 if (response.ResponseCode != 200) // Did we get the expected response? (a "200 OK")
                     throw new ApplicationException("HTTP Response: " + response.ResponseCode.ToString());
                 else if (response.ResponseBody == "[]") //Does the REST Dataset return empty?
@@ -302,6 +365,7 @@ namespace ScaleIndicatorPrinter
                 var objLabel = new Label(new string[] { Item, mSettings.JobNumber, mSettings.OperationNumber.ToString("D3"), strBldrEmployees.ToString(), 
                     ((int)Pieces).ToString(), CurrentDateTime.ToString("MM/dd/yy h:mm:ss tt"), CurrentDateTime.ToString("dddd") });
                 objLabel.LabelFormat = mSettings.LabelFormat;
+                Debug.Print("Data written to printer serial port is:\r\n" + objLabel.LabelText);
                 mPrinterSerialPort.WriteString(objLabel.LabelText);
             }
             catch (Exception objEx)

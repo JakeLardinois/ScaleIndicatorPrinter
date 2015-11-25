@@ -3,7 +3,7 @@ using Microsoft.SPOT;
 
 using System.IO;
 using NetMf.CommonExtensions;
-
+using NetduinoRGBLCDShield;
 
 namespace ScaleIndicatorPrinter.Models
 {
@@ -16,16 +16,20 @@ namespace ScaleIndicatorPrinter.Models
         public string LabelFormat { get; set; }
         public void StoreLabelFormat()
         {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + LabelFormatFileName))
-                objStreamWriter.WriteLine(Job);
+            string strFilePathAndName = RootDirectory.FullName + "\\" + LabelFormatFileName;
+            using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
+                objStreamWriter.WriteLine(LabelFormat);
+            Debug.Print("Wrote Contents: " + LabelFormat + "\r\nTo File: " + strFilePathAndName);
         }
 
         public string JobNumberFileName { get; set; }
         public string JobNumber { get; set; }
         public void StoreJobNumber()
         {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + JobNumberFileName))
+            string strFilePathAndName = RootDirectory.FullName + "\\" + JobNumberFileName;
+            using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
                 objStreamWriter.WriteLine(Job);
+            Debug.Print("Wrote Contents: " + Job + "\r\nTo File: " + strFilePathAndName);
         }
         public string Job { 
             get {
@@ -57,8 +61,10 @@ namespace ScaleIndicatorPrinter.Models
         public string Operation { get; set; }
         public void StoreOperationNumber()
         {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + OperationFileName))
+            string strFilePathAndName = RootDirectory.FullName + "\\" + OperationFileName;
+            using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
                 objStreamWriter.WriteLine(Operation);
+            Debug.Print("Wrote Contents: " + Operation + "\r\nTo File: " + strFilePathAndName);
         }
         public int OperationNumber
         {
@@ -80,8 +86,10 @@ namespace ScaleIndicatorPrinter.Models
         public string ShopTrakTransactionsURL { get; set; }
         public void StoreShopTrakTransactionsURL()
         {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + ShopTrakTransactionsURLFileName))
-                objStreamWriter.WriteLine(Job);
+            string strFilePathAndName = RootDirectory.FullName + "\\" + ShopTrakTransactionsURLFileName;
+            using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
+                objStreamWriter.WriteLine(ShopTrakTransactionsURL);
+            Debug.Print("Wrote Contents: " + ShopTrakTransactionsURL + "\r\nTo File: " + strFilePathAndName);
         }
 
         public double[] Increments { get; set; }
@@ -107,32 +115,65 @@ namespace ScaleIndicatorPrinter.Models
         }
         public void StorePieceWeight()
         {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + PieceWeightFileName))
+            string strFilePathAndName = RootDirectory.FullName + "\\" + PieceWeightFileName;
+            using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
                 objStreamWriter.WriteLine(PieceWeight);
+            Debug.Print("Wrote Contents: " + PieceWeight + "\r\nTo File: " + strFilePathAndName);
         }
         public void IncrementPieceWeight()
         {
             PieceWeight = PieceWeight + Increments[IncrementSelection];
+            Debug.Print("PieceWeight Incremented to: " + PieceWeight);
         }
         public void DecrementPieceWeight()
         {
             PieceWeight = PieceWeight - Increments[IncrementSelection];
+            Debug.Print("PieceWeight Decremented to: " + PieceWeight);
         }
 
         public string NetWeightAdjustmentFileName { get; set; }
         public double NetWeightAdjustment{ get; set; }
         public void StoreNetWeightAdjustment()
         {
-            using (StreamWriter objStreamWriter = new StreamWriter(RootDirectory.FullName + "\\" + NetWeightAdjustmentFileName))
+            string strFilePathAndName = RootDirectory.FullName + "\\" + NetWeightAdjustmentFileName;
+            using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
                 objStreamWriter.WriteLine(NetWeightAdjustment);
+            Debug.Print("Wrote Contents: " + NetWeightAdjustment + "\r\nTo File: " + strFilePathAndName);
         }
         public void IncrementNetWeightAdjustment()
         {
             NetWeightAdjustment = NetWeightAdjustment + Increments[IncrementSelection];
+            Debug.Print("NetWeightAdjustment Incremented to: " + NetWeightAdjustment);
         }
         public void DecrementNetWeightAdjustment()
         {
              NetWeightAdjustment = NetWeightAdjustment - Increments[IncrementSelection];
+             Debug.Print("NetWeightAdjustment Decremented to: " + NetWeightAdjustment);
+        }
+
+        public string BackgroundColorFileName { get; set; }
+        private int intBackGroundColor { get; set; }
+        public BacklightColor BackgroundColor {
+            get { return (BacklightColor)intBackGroundColor; }
+            set { intBackGroundColor = (int)value; }
+        }
+        public string BackgroundColorName { get { return BackgroundColor.GetColorName(); } }
+        public void StoreBackgroundColor()
+        {
+            string strFilePathAndName = RootDirectory.FullName + "\\" + BackgroundColorFileName;
+            using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
+                objStreamWriter.WriteLine(BackgroundColor);
+            Debug.Print("Wrote Contents: " + BackgroundColor + "\r\nTo File: " + strFilePathAndName);
+        }
+        public void NextBackgroundColor()
+        {
+            intBackGroundColor = ++intBackGroundColor % (int)BacklightColor.ColorCount;
+        }
+        public void PreviousBackgroundColor()
+        {
+            if (intBackGroundColor == 0)
+                intBackGroundColor = (int)BacklightColor.ColorCount;
+            intBackGroundColor = --intBackGroundColor % (int)BacklightColor.ColorCount;
         }
 
         public void RetrieveSettingsFromSDCard()
@@ -144,92 +185,107 @@ namespace ScaleIndicatorPrinter.Models
                 throw new ApplicationException(RootDirectory.FullName + " is not a Valid Directory!!");
             }
 
-            //SetLabelFormat(mLabelFormatFileName, Label.SampleLabel);
             RetrieveInformationFromFile(LabelFormatFileName, InformationType.LabelFormat);
-
-            //SetJobNumber(mJobFileName, "B000053070-0000");
             RetrieveInformationFromFile(JobNumberFileName, InformationType.JobNumber);
-
-            //SetOperationNumber(mOperationFileName, "10");
             RetrieveInformationFromFile(OperationFileName, InformationType.OperationNumber);
-
-            //SetShopTrakTransactionsURL(mShopTrakTransactionsURLFileName, 
-            //    "http://dataservice.wiretechfab.com:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=~p0&Suffix=~p1&Operation=~p2");
             RetrieveInformationFromFile(ShopTrakTransactionsURLFileName, InformationType.ShopTrakTransactionsURL);
-
-            //SetPieceWeight(mPieceWeightFileName, .5);
             RetrieveInformationFromFile(PieceWeightFileName, InformationType.PieceWeight);
-
-            //SetNetWeightAdjustment(mNetWeightAdjustmentFileName, 10);
             RetrieveInformationFromFile(NetWeightAdjustmentFileName, InformationType.NetWeightAdjustment);
+            RetrieveInformationFromFile(BackgroundColorFileName, InformationType.ColorName);
         }
 
         private void RetrieveInformationFromFile(string FileName, InformationType Information)
         {
             double dblTemp;
-
             string FilePathAndName = RootDirectory.FullName + "\\" + FileName;
-            string[] InformationTypes = new [] { "Label Format", "Job", "Operation", "ShopTrak Transactions URL", "Piece Weight", "Net Weight Adjustment" };
+            string[] InformationTypes = new [] { "Label Format", "Job", "Operation", "ShopTrak Transactions URL", "Piece Weight", "Net Weight Adjustment", "Background Color" };
 
-
+            Debug.Print("Reading file: " + FilePathAndName);
             if (File.Exists(FilePathAndName))
                 using (StreamReader objStreamReader = new StreamReader(FilePathAndName))
                     switch (Information)
                     {
                         case InformationType.LabelFormat:
                             LabelFormat = objStreamReader.ReadToEnd();
+                            Debug.Print("LabelFormat from SD Card: " + LabelFormat);
                             break;
                         case InformationType.JobNumber:
                             JobNumber = objStreamReader.ReadLine().Trim();
+                            Debug.Print("JobNumber from SD Card: " + JobNumber);
                             break;
                         case InformationType.OperationNumber:
                             Operation = objStreamReader.ReadLine().Trim();
+                            Debug.Print("Operation from SD Card: " + Operation);
                             break;
                         case InformationType.ShopTrakTransactionsURL:
                             ShopTrakTransactionsURL = objStreamReader.ReadLine().Trim();
+                            Debug.Print("ShopTrakTransactionsURL from SD Card: " + ShopTrakTransactionsURL);
                             break;
                         case InformationType.PieceWeight:
                             var strPieceWeight = objStreamReader.ReadLine().Trim();
                             PieceWeight = double.TryParse(strPieceWeight, out dblTemp) ? dblTemp : 0.0;
+                            Debug.Print("PieceWeight from SD Card: " + PieceWeight);
                             break;
                         case InformationType.NetWeightAdjustment:
                             var strNetWeightAdjustment = objStreamReader.ReadLine().Trim();
                             NetWeightAdjustment = double.TryParse(strNetWeightAdjustment, out dblTemp) ? dblTemp : 0.0;
+                            Debug.Print("NetWeightAdjustment from SD Card: " + NetWeightAdjustment);
+                            break;
+                        case InformationType.ColorName:
+                            var strBackgroundColor = objStreamReader.ReadLine().Trim();
+                            BackgroundColor = double.TryParse(strBackgroundColor, out dblTemp) ? (BacklightColor)dblTemp : (BacklightColor)0;
+                            Debug.Print("BackgroundColor from SD Card: " + BackgroundColor);
                             break;
                     }
             else
             {
-                Debug.Print(FileName + " is not a Valid " + InformationTypes[(int)Information] + " Data File!!");
+                string strContents = string.Empty;
+
+                Debug.Print(FilePathAndName + " is not a Valid " + InformationTypes[(int)Information] + " Data File!!");
+                Debug.Print("Creating  " + FilePathAndName + "...");
                 using (var objFileStream = new FileStream(FilePathAndName, FileMode.Create))
                     using (var objStreamWriter = new StreamWriter(objFileStream))
                         switch(Information)
                         {
                             case InformationType.LabelFormat:
-                                objStreamWriter.WriteLine(Label.DefaultLabel);
+                                strContents = Label.DefaultLabel;
+                                objStreamWriter.WriteLine(strContents);
                                 objStreamWriter.WriteLine();
                                 break;
                             case InformationType.JobNumber:
+                                strContents = "B00123-000";
                                 objStreamWriter.WriteLine("0");
                                 objStreamWriter.WriteLine();
                                 break;
                             case InformationType.OperationNumber:
-                                objStreamWriter.WriteLine("0");
+                                strContents = "10";
+                                objStreamWriter.WriteLine(strContents);
                                 objStreamWriter.WriteLine();
                                 break;
                             case InformationType.ShopTrakTransactionsURL:
-                                objStreamWriter.WriteLine("0");
+                                strContents = "http://dataservice.wiretechfab.com:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=~p0&Suffix=~p1&Operation=~p2";
+                                objStreamWriter.WriteLine(strContents);
                                 objStreamWriter.WriteLine();
                                 break;
                             case InformationType.PieceWeight:
-                                objStreamWriter.WriteLine("0");
+                                strContents = "0";
+                                objStreamWriter.WriteLine(strContents);
                                 objStreamWriter.WriteLine();
                                 break;
                             case InformationType.NetWeightAdjustment:
-                                objStreamWriter.WriteLine("0");
+                                strContents = "0";
+                                objStreamWriter.WriteLine(strContents);
+                                objStreamWriter.WriteLine();
+                                break;
+                            case InformationType.ColorName:
+                                strContents = "7";// 7 is White...
+                                objStreamWriter.WriteLine(strContents); 
                                 objStreamWriter.WriteLine();
                                 break;
                         }
-                Debug.Print("Created " + FileName + " for a " + InformationTypes[(int)Information] + " Data File...");
+                System.Threading.Thread.Sleep(100);
+                Debug.Print("Created " + FileName + " for a " + InformationTypes[(int)Information] + " Data File...\r\n" +
+                    "Wrote to File: " + strContents);
                 throw new ApplicationException(FileName + " is not a Valid " + InformationTypes[(int)Information] + " Data File!!");
             }
                 

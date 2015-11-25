@@ -3,6 +3,7 @@ using Microsoft.SPOT;
 
 using NetMf.CommonExtensions;
 using Json.NETMF;
+using NetduinoRGBLCDShield;
 
 
 namespace ScaleIndicatorPrinter.Models
@@ -19,5 +20,54 @@ namespace ScaleIndicatorPrinter.Models
             return strTemp;
         }
 
+        public static string GetColorName(this BacklightColor source)
+        {
+            switch (source)
+            {
+                case BacklightColor.Off:
+                    return "Off";
+                case BacklightColor.Red:
+                    return "Red";
+                case BacklightColor.Yellow:
+                    return "Yellow";
+                case BacklightColor.Green:
+                    return "Green";
+                case BacklightColor.Teal:
+                    return "Teal";
+                case BacklightColor.Blue:
+                    return "Blue";
+                case BacklightColor.Violet:
+                    return "Violet";
+                case BacklightColor.White:
+                    return "White";
+                default:
+                    return "Undefined";
+            }
+        }
+
+        public static BacklightColor GetBackLightColor(this string source)
+        {
+            switch (source)
+            {
+                case "Off":
+                    return BacklightColor.Off;
+                case "Red":
+                    return BacklightColor.Red;
+                case "Yellow":
+                    return BacklightColor.Yellow;
+                case "Green":
+                    return BacklightColor.Green;
+                case "Teal":
+                    return BacklightColor.Teal;
+                case "Blue":
+                    return BacklightColor.Blue;
+                case "Violet":
+                    return BacklightColor.Violet;
+                case "White":
+                    return BacklightColor.White;
+                default:
+                    return BacklightColor.Off;
+            }
+        }
     }
 }

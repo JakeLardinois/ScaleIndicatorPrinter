@@ -18,7 +18,8 @@ namespace ScaleIndicatorPrinter.Models
         OperationNumber = 2,
         ShopTrakTransactionsURL = 3,
         PieceWeight = 4,
-        NetWeightAdjustment = 5
+        NetWeightAdjustment = 5,
+        ColorName = 6
     }
 
     public enum MenuSelection
@@ -28,8 +29,12 @@ namespace ScaleIndicatorPrinter.Models
         Operation,
         ViewPieceWeight,
         ViewNetWeightAdjustment,
+        ViewBackgroundColor,
+        Reboot,
         AdjustPieceWeight,
-        AdjustNetWeight
+        AdjustNetWeight,
+        ChangeBackgroundColor,
+        Rebooting
     }
     
 }

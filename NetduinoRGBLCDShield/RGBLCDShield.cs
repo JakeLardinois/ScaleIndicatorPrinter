@@ -6,13 +6,15 @@ namespace NetduinoRGBLCDShield
 {
     public enum BacklightColor : byte
     {
+        Off = 0x0,
         Red = 0x1,
-        Yellow = 0x3,
         Green = 0x2,
-        Teal = 0x6,
+        Yellow = 0x3,
         Blue = 0x4,
         Violet = 0x5,
-        White = 0x7
+        Teal = 0x6,
+        White = 0x7,
+        ColorCount
     }
 
     [Flags]
@@ -85,14 +87,14 @@ namespace NetduinoRGBLCDShield
         public RGBLCDShield(MCP23017 mcp23017, byte cols = 16, byte rows = 2, byte dotsize = 0)
         {
             this.mcp23017 = mcp23017;
-            this.displayFunction = 0x00;
+            this.displayFunction = 0x0;
 
             // initialize the MCP23017 for this board
             mcp23017.PinMode(8, MCP23017.Direction.Output);
             mcp23017.PinMode(6, MCP23017.Direction.Output);
             mcp23017.PinMode(7, MCP23017.Direction.Output);
 
-            SetBacklight(BacklightColor.White);
+            //SetBacklight(BacklightColor.White);
 
             mcp23017.PinMode(rsPin, MCP23017.Direction.Output);
             mcp23017.PinMode(rwPin, MCP23017.Direction.Output);
@@ -239,9 +241,10 @@ namespace NetduinoRGBLCDShield
         public void SetBacklight(BacklightColor color)
         {
             byte status = (byte)color;
+
             mcp23017.DigitalWrite(8, (byte)(~(status >> 2) & 0x01));
             mcp23017.DigitalWrite(7, (byte)(~(status >> 1) & 0x01));
-            mcp23017.DigitalWrite(6, (byte)(~status & 0x01));
+            mcp23017.DigitalWrite(6, (byte)(~(status >> 0) & 0x01));
         }
 
         public Button ReadButtons()
