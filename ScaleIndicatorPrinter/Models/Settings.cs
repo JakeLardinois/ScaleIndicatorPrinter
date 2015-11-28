@@ -176,6 +176,9 @@ namespace ScaleIndicatorPrinter.Models
             intBackGroundColor = --intBackGroundColor % (int)BacklightColor.ColorCount;
         }
 
+        public string IPAddress { get; set; }
+        public string NetMask { get; set; }
+
         public void RetrieveSettingsFromSDCard()
         {
             RootDirectory = new System.IO.DirectoryInfo(RootDirectoryPath);

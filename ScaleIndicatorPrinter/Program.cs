@@ -14,6 +14,9 @@ using System.Collections;
 using Json.NETMF;
 using NetduinoRGBLCDShield;
 using System.Text;
+using Microsoft.SPOT.Net.NetworkInformation;
+using Rinsen.WebServer.FileAndDirectoryServer;
+
 
 namespace ScaleIndicatorPrinter
 {
@@ -85,6 +88,15 @@ namespace ScaleIndicatorPrinter
                 btnBoard = new InterruptPort(Pins.ONBOARD_SW1, false, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeHigh);
                 // Create an event handler for the button
                 btnBoard.OnInterrupt += new NativeEventHandler(btnBoard_OnInterrupt);
+
+
+                // write your code here
+                var webServer = new WebServer();
+                webServer.AddRequestFilter(new RequestFilter());
+                webServer.SetFileAndDirectoryService(new FileAndDirectoryService());
+                webServer.RouteTable.DefaultControllerName = "Default";
+                webServer.StartServer();
+
 
                 //Display appropriate information to the user...
                 mMenu.DisplayInformation(mSettings);
@@ -277,6 +289,20 @@ namespace ScaleIndicatorPrinter
                     Debug.Print("Set Menu to Adjust Background Color...");
                     mMenu.MenuSelection = MenuSelection.ChangeBackgroundColor;
                     break;
+                case MenuSelection.ViewNetworkInfo:
+                    mMenu.DataRecieved = RecievedData.None;
+                    Debug.Print("Set Menu to Display Network Info...");
+                    mMenu.MenuSelection = MenuSelection.DisplayNetworkInfo;
+
+                    var objNic = NetworkInterface.GetAllNetworkInterfaces()[0];
+                    //var objNic = Microsoft.SPOT.Net.NetworkInformation.Wireless80211.GetAllNetworkInterfaces()[0];
+                    //Debug.Print(objNic.IPAddress);
+                    //Debug.Print("IPAddress: " + Locate());
+                    mSettings.IPAddress = objNic.IPAddress;
+                    mSettings.NetMask = objNic.SubnetMask;
+                    Debug.Print("IP Address is: " + mSettings.IPAddress + "\r\nNetMask is: " + mSettings.NetMask);
+                    mMenu.DisplayInformation(mSettings);
+                    break;
                 case MenuSelection.Reboot:
                     mMenu.MenuSelection = MenuSelection.Rebooting;
                     mMenu.DisplayInformation(mSettings);
@@ -286,6 +312,45 @@ namespace ScaleIndicatorPrinter
                     break;
             }
             mMenu.DisplayInformation(mSettings);
+        }
+
+        public static IPAddress Locate()
+        {
+            var count = 1;
+            //foreach (var networkInterface in Microsoft.SPOT.Net.NetworkInformation.Wireless80211.GetAllNetworkInterfaces())
+            foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                Debug.Print("Interface nr: " + count);
+                Debug.Print("Is dhcp enabled: " + networkInterface.IsDhcpEnabled);
+                Debug.Print("Interface address: " + networkInterface.IPAddress);
+                Debug.Print("Gateway address: " + networkInterface.GatewayAddress);
+                foreach (var dnsAddress in networkInterface.DnsAddresses)
+                {
+                    Debug.Print("Dns address: " + dnsAddress);
+                }
+                var sb = new StringBuilder("Physical address: ");
+                var parts = 1;
+                foreach (var physicalAddress in networkInterface.PhysicalAddress)
+                {
+                    sb.Append(physicalAddress);
+                    if (parts < networkInterface.PhysicalAddress.Length)
+                        sb.Append("-");
+                    parts++;
+                }
+                Debug.Print(sb.ToString());
+
+                Debug.Print("Subnet mask: " + networkInterface.SubnetMask);
+                count++;
+            }
+            foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (networkInterface.GatewayAddress != "0.0.0.0")
+                {
+                    Debug.Print("Selected interface: " + networkInterface.IPAddress);
+                    return IPAddress.Parse(networkInterface.IPAddress);
+                }
+            }
+            throw new Exception("No network interface detected");
         }
 
         private static void IndicatorScannerSerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)

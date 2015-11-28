@@ -30,10 +30,12 @@ namespace ScaleIndicatorPrinter.Models
         ViewPieceWeight,
         ViewNetWeightAdjustment,
         ViewBackgroundColor,
+        ViewNetworkInfo,
         Reboot,
         AdjustPieceWeight,
         AdjustNetWeight,
         ChangeBackgroundColor,
+        DisplayNetworkInfo,
         Rebooting
     }
     

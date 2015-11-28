@@ -18,8 +18,8 @@ namespace ScaleIndicatorPrinter.Models
         public RecievedData DataRecieved { get; set; }
 
         private int intMenuSelection { get; set; }
-        private int AvailableMenuCount { get { return 7; } } //this represents 7 available menus. Note that the MenuSelection enumeration has 11 available values but I only want to be able to cycle 
-        public MenuSelection MenuSelection                  //through 7 of them since the other 2 AdjustPieceWeight, AdjustNetWeight & ChangeColor are set via the 'Select' Button.
+        private int AvailableMenuCount { get { return 8; } } //this represents 8 available menus. Note that the MenuSelection enumeration has 12 available values but I only want to be able to cycle 
+        public MenuSelection MenuSelection                  //through 8 of them since the other 3 AdjustPieceWeight, AdjustNetWeight & ChangeColor are set via the 'Select' Button.
         {
             get
             {
@@ -95,6 +95,10 @@ namespace ScaleIndicatorPrinter.Models
                     lcdBoard.SetPosition(1, 0);
                     lcdBoard.Write(objSettings.BackgroundColorName);
                     break;
+                case MenuSelection.ViewNetworkInfo:
+                    lcdBoard.Write("View Network Info");
+                    lcdBoard.ClearRow(1);
+                    break;
                 case MenuSelection.Reboot:
                     lcdBoard.Write("Reboot Device");
                     lcdBoard.ClearRow(1);
@@ -113,6 +117,11 @@ namespace ScaleIndicatorPrinter.Models
                     lcdBoard.Write("Change Color...");
                     lcdBoard.SetPosition(1, 0);
                     lcdBoard.Write(objSettings.BackgroundColorName);
+                    break;
+                case MenuSelection.DisplayNetworkInfo:
+                    lcdBoard.Write(objSettings.IPAddress);
+                    lcdBoard.SetPosition(1, 0);
+                    lcdBoard.Write(objSettings.NetMask);
                     break;
                 case MenuSelection.Rebooting:
                     lcdBoard.Write("Goodbye");
