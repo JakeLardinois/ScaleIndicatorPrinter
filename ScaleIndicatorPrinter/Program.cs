@@ -14,8 +14,8 @@ using System.Collections;
 using Json.NETMF;
 using NetduinoRGBLCDShield;
 using System.Text;
-using Microsoft.SPOT.Net.NetworkInformation;
 using Rinsen.WebServer.FileAndDirectoryServer;
+
 
 
 namespace ScaleIndicatorPrinter
@@ -28,7 +28,7 @@ namespace ScaleIndicatorPrinter
         private static CD74HC4067 Mux { get; set; }
         private static MCP23017 mcp23017 { get; set; }
 
-        private static Settings mSettings { get; set; }
+        public static Settings Settings { get; set; }
         private static Menu mMenu { get; set; }
 
         private static InterruptPort btnBoard { get; set; }
@@ -58,20 +58,13 @@ namespace ScaleIndicatorPrinter
                 Mux = new CD74HC4067(DigitalPin9, DigitalPin10, DigitalPin11, DigitalPin12);
                 Mux.SetPort(MuxChannel.C0); //default it to C0 which is data coming in from the Indicators Serial Port
 
-                mSettings = new Settings();
-                mSettings.Increments = new double[] { .001, .01, .1, 1, 10, 100 };
-                mSettings.IncrementSelection = 3;
-                mSettings.RootDirectoryPath = @"\SD\";
-                mSettings.LabelFormatFileName = "LabelFormat.txt";
-                mSettings.JobNumberFileName = "Job.txt";
-                mSettings.OperationFileName = "Operation.txt";
-                mSettings.ShopTrakTransactionsURLFileName = "ShopTrakTransactionsURL.txt";
-                mSettings.PieceWeightFileName = "PieceWeight.txt";
-                mSettings.NetWeightAdjustmentFileName = "NetWeightAdjustment.txt";
-                mSettings.BackgroundColorFileName = "BackgroundColor.txt";
-                mSettings.RetrieveSettingsFromSDCard();
+                Settings = new Settings();
+                Settings.Increments = new double[] { .001, .01, .1, 1, 10, 100 };
+                Settings.IncrementSelection = 3;
+                Settings.RetrieveSettingsFromSDCard(@"\SD\WWW\", "LabelFormat.txt", "Job.txt", "Operation.txt", "ShopTrakTransactionsURL.txt",
+                    "PieceWeight.txt", "NetWeightAdjustment.txt", "BackgroundColor.txt");
 
-                mMenu.SetBackLightColor(mSettings.BackgroundColor);
+                mMenu.SetBackLightColor(Settings.BackgroundColor);
 
                 // initialize the serial port for data being input via COM1
                 mIndicatorScannerSerialPort = new MySerialPort(SerialPorts.COM1, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
@@ -89,17 +82,16 @@ namespace ScaleIndicatorPrinter
                 // Create an event handler for the button
                 btnBoard.OnInterrupt += new NativeEventHandler(btnBoard_OnInterrupt);
 
-
                 // write your code here
                 var webServer = new WebServer();
                 webServer.AddRequestFilter(new RequestFilter());
                 webServer.SetFileAndDirectoryService(new FileAndDirectoryService());
                 webServer.RouteTable.DefaultControllerName = "Default";
-                webServer.StartServer();
+                webServer.StartServer(80);//If port is not specified, then default is port 8500
 
 
                 //Display appropriate information to the user...
-                mMenu.DisplayInformation(mSettings);
+                mMenu.DisplayInformation(Settings);
             }
             catch (Exception objEx)
             {
@@ -146,67 +138,67 @@ namespace ScaleIndicatorPrinter
                 {
                     case NetduinoRGBLCDShield.Button.Left:
                         if ((mMenu.MenuSelection == MenuSelection.AdjustPieceWeight) || (mMenu.MenuSelection == MenuSelection.AdjustNetWeight))
-                            ++mSettings.IncrementSelection;
+                            ++Settings.IncrementSelection;
                         else if (mMenu.MenuSelection == MenuSelection.ChangeBackgroundColor)
                         {
-                            mSettings.NextBackgroundColor();
-                            mMenu.SetBackLightColor(mSettings.BackgroundColor);
-                            mMenu.DisplayInformation(mSettings);
+                            Settings.NextBackgroundColor();
+                            mMenu.SetBackLightColor(Settings.BackgroundColor);
+                            mMenu.DisplayInformation(Settings);
                         }
                         else
                         {
                             mMenu.GoToPreviousAvailableMenuSelection();
-                            mMenu.DisplayInformation(mSettings);
+                            mMenu.DisplayInformation(Settings);
                         }
                         break;
                     case NetduinoRGBLCDShield.Button.Right:
                         if ((mMenu.MenuSelection == MenuSelection.AdjustPieceWeight) || (mMenu.MenuSelection == MenuSelection.AdjustNetWeight))
-                            --mSettings.IncrementSelection;
+                            --Settings.IncrementSelection;
                         else if (mMenu.MenuSelection == MenuSelection.ChangeBackgroundColor)
                         {
-                            mSettings.PreviousBackgroundColor();
-                            mMenu.SetBackLightColor(mSettings.BackgroundColor);
-                            mMenu.DisplayInformation(mSettings);
+                            Settings.PreviousBackgroundColor();
+                            mMenu.SetBackLightColor(Settings.BackgroundColor);
+                            mMenu.DisplayInformation(Settings);
                         }
                         else
                         {
                             mMenu.GoToNextAvailableMenuSelection();
-                            mMenu.DisplayInformation(mSettings);
+                            mMenu.DisplayInformation(Settings);
                         }
                         break;
                     case NetduinoRGBLCDShield.Button.Up:
                         if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
-                            mSettings.IncrementPieceWeight();
+                            Settings.IncrementPieceWeight();
                         else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
-                            mSettings.IncrementNetWeightAdjustment();
-                        mMenu.DisplayInformation(mSettings);
+                            Settings.IncrementNetWeightAdjustment();
+                        mMenu.DisplayInformation(Settings);
                         break;
                     case NetduinoRGBLCDShield.Button.Down:
                         if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
-                            mSettings.DecrementPieceWeight();
+                            Settings.DecrementPieceWeight();
                         else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
-                            mSettings.DecrementNetWeightAdjustment();
-                        mMenu.DisplayInformation(mSettings);
+                            Settings.DecrementNetWeightAdjustment();
+                        mMenu.DisplayInformation(Settings);
                         break;
                     case NetduinoRGBLCDShield.Button.Select:
                         if (mMenu.MenuSelection == MenuSelection.AdjustPieceWeight)
                         {
-                            mSettings.StorePieceWeight();
+                            Settings.StorePieceWeight();
                             mMenu.MenuSelection = MenuSelection.ViewPieceWeight;
-                            mMenu.DisplayInformation(mSettings);
+                            mMenu.DisplayInformation(Settings);
                         }
                         else if (mMenu.MenuSelection == MenuSelection.AdjustNetWeight)
                         {
-                            mSettings.StoreNetWeightAdjustment();
+                            Settings.StoreNetWeightAdjustment();
                             mMenu.MenuSelection = MenuSelection.ViewNetWeightAdjustment;
-                            mMenu.DisplayInformation(mSettings);
+                            mMenu.DisplayInformation(Settings);
                         }
                         else if (mMenu.MenuSelection == MenuSelection.ChangeBackgroundColor)
                         {
-                            mSettings.StoreBackgroundColor();
-                            mMenu.SetBackLightColor(mSettings.BackgroundColor);
+                            Settings.StoreBackgroundColor();
+                            mMenu.SetBackLightColor(Settings.BackgroundColor);
                             mMenu.MenuSelection = MenuSelection.ViewBackgroundColor;
-                            mMenu.DisplayInformation(mSettings);
+                            mMenu.DisplayInformation(Settings);
                         }
                         else
                             PerformAction();
@@ -293,64 +285,17 @@ namespace ScaleIndicatorPrinter
                     mMenu.DataRecieved = RecievedData.None;
                     Debug.Print("Set Menu to Display Network Info...");
                     mMenu.MenuSelection = MenuSelection.DisplayNetworkInfo;
-
-                    var objNic = NetworkInterface.GetAllNetworkInterfaces()[0];
-                    //var objNic = Microsoft.SPOT.Net.NetworkInformation.Wireless80211.GetAllNetworkInterfaces()[0];
-                    //Debug.Print(objNic.IPAddress);
-                    //Debug.Print("IPAddress: " + Locate());
-                    mSettings.IPAddress = objNic.IPAddress;
-                    mSettings.NetMask = objNic.SubnetMask;
-                    Debug.Print("IP Address is: " + mSettings.IPAddress + "\r\nNetMask is: " + mSettings.NetMask);
-                    mMenu.DisplayInformation(mSettings);
+                    Settings.RetrieveNetworkSettings(Microsoft.SPOT.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()[0]);
                     break;
                 case MenuSelection.Reboot:
                     mMenu.MenuSelection = MenuSelection.Rebooting;
-                    mMenu.DisplayInformation(mSettings);
+                    mMenu.DisplayInformation(Settings);
                     BlinkOnboardLED(3, 300);
                     Debug.Print("Rebooting...");
                     PowerState.RebootDevice(false);
                     break;
             }
-            mMenu.DisplayInformation(mSettings);
-        }
-
-        public static IPAddress Locate()
-        {
-            var count = 1;
-            //foreach (var networkInterface in Microsoft.SPOT.Net.NetworkInformation.Wireless80211.GetAllNetworkInterfaces())
-            foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                Debug.Print("Interface nr: " + count);
-                Debug.Print("Is dhcp enabled: " + networkInterface.IsDhcpEnabled);
-                Debug.Print("Interface address: " + networkInterface.IPAddress);
-                Debug.Print("Gateway address: " + networkInterface.GatewayAddress);
-                foreach (var dnsAddress in networkInterface.DnsAddresses)
-                {
-                    Debug.Print("Dns address: " + dnsAddress);
-                }
-                var sb = new StringBuilder("Physical address: ");
-                var parts = 1;
-                foreach (var physicalAddress in networkInterface.PhysicalAddress)
-                {
-                    sb.Append(physicalAddress);
-                    if (parts < networkInterface.PhysicalAddress.Length)
-                        sb.Append("-");
-                    parts++;
-                }
-                Debug.Print(sb.ToString());
-
-                Debug.Print("Subnet mask: " + networkInterface.SubnetMask);
-                count++;
-            }
-            foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                if (networkInterface.GatewayAddress != "0.0.0.0")
-                {
-                    Debug.Print("Selected interface: " + networkInterface.IPAddress);
-                    return IPAddress.Parse(networkInterface.IPAddress);
-                }
-            }
-            throw new Exception("No network interface detected");
+            mMenu.DisplayInformation(Settings);
         }
 
         private static void IndicatorScannerSerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
@@ -378,16 +323,16 @@ namespace ScaleIndicatorPrinter
                     }
                     break;
                 case RecievedData.ScannerJobAndSuffix:
-                    mSettings.JobNumber = strMessage;
-                    mSettings.StoreJobNumber();
+                    Settings.JobNumber = strMessage;
+                    Settings.StoreJobNumber();
                     mMenu.DataRecieved = RecievedData.None;
-                    mMenu.DisplayInformation(mSettings);
+                    mMenu.DisplayInformation(Settings);
                     break;
                 case RecievedData.ScannerOperation:
-                    mSettings.Operation = strMessage;
-                    mSettings.StoreOperationNumber();
+                    Settings.Operation = strMessage;
+                    Settings.StoreOperationNumber();
                     mMenu.DataRecieved = RecievedData.None;
-                    mMenu.DisplayInformation(mSettings);
+                    mMenu.DisplayInformation(Settings);
                     break;
             }
             
@@ -397,7 +342,7 @@ namespace ScaleIndicatorPrinter
         {
             try
             {
-                var URL = mSettings.ShopTrakTransactionsURL.SetParameters(new string[] { mSettings.Job, mSettings.Suffix.ToString(), mSettings.Operation.ToString() });
+                var URL = Settings.ShopTrakTransactionsURL.SetParameters(new string[] { Settings.Job, Settings.Suffix.ToString(), Settings.Operation.ToString() });
                 Debug.Print("WebGet URL is: " + URL);
                 var objURI = new Uri(URL);
                 var webClient = new HTTP_Client(new IntegratedSocket(objURI.Host, (ushort)objURI.Port));
@@ -424,12 +369,12 @@ namespace ScaleIndicatorPrinter
                 }
                 strBldrEmployees.Remove(strBldrEmployees.ToString().LastIndexOf(","), 1); //remove the last comma from the string
 
-                var Pieces = (objIndicatorData.NetWeight + mSettings.NetWeightAdjustment) / mSettings.PieceWeight;
+                var Pieces = (objIndicatorData.NetWeight + Settings.NetWeightAdjustment) / Settings.PieceWeight;
 
                 //Instantiate my label so that I can populate the Format property with the value pulled from the SDCard.
-                var objLabel = new Label(new string[] { Item, mSettings.JobNumber, mSettings.OperationNumber.ToString("D3"), strBldrEmployees.ToString(), 
+                var objLabel = new Label(new string[] { Item, Settings.JobNumber, Settings.OperationNumber.ToString("D3"), strBldrEmployees.ToString(), 
                     ((int)Pieces).ToString(), CurrentDateTime.ToString("MM/dd/yy h:mm:ss tt"), CurrentDateTime.ToString("dddd") });
-                objLabel.LabelFormat = mSettings.LabelFormat;
+                objLabel.LabelFormat = Settings.LabelFormat;
                 Debug.Print("Data written to printer serial port is:\r\n" + objLabel.LabelText);
                 mPrinterSerialPort.WriteString(objLabel.LabelText);
             }

@@ -8,7 +8,7 @@ namespace ScaleIndicatorPrinter.Controllers
     {
         public void Index()
         {
-            SetHtmlResult("<!DOCTYPE html><html><body><h1>Default CartScal Page...</h1></body></html>");
+            SetHtmlResult("<!DOCTYPE html><html><body><h1>Default " + Program.Settings.MACAddress + " CartScale Page...</h1></body></html>");
         }
     }
 }

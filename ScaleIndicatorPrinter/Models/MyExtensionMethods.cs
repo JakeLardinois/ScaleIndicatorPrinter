@@ -69,5 +69,7 @@ namespace ScaleIndicatorPrinter.Models
                     return BacklightColor.Off;
             }
         }
+
     }
+
 }
