@@ -46,3 +46,10 @@ C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectory
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\obj\Debug\be\Rinsen.WebServer.FileAndDirectoryServer.pdbx
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\obj\Debug\le\Rinsen.WebServer.FileAndDirectoryServer.pe
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\obj\Debug\le\Rinsen.WebServer.FileAndDirectoryServer.pdbx
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\LE\Json.NetMF.pe
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\BE\Json.NetMF.pe
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\LE\Json.NetMF.pdbx
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\BE\Json.NetMF.pdbx
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\Json.NetMF.dll
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\Json.NetMF.pdb
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\Json.NetMF.xml

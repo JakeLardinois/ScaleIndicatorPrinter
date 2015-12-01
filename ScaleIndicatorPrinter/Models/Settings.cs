@@ -188,6 +188,7 @@ namespace ScaleIndicatorPrinter.Models
         public void RetrieveNetworkSettings(NetworkInterface objNic)
         {
             //var objNic = Microsoft.SPOT.Net.NetworkInformation.Wireless80211.GetAllNetworkInterfaces()[0];
+            //var objNic = Microsoft.SPOT.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()[0];
             mIPAddress = objNic.IPAddress;
             mNetMask = objNic.SubnetMask;
             mMACAddress = objNic.PhysicalAddress.ToHexString();

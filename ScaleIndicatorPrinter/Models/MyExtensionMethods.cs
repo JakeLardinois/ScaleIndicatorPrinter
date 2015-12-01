@@ -70,6 +70,18 @@ namespace ScaleIndicatorPrinter.Models
             }
         }
 
+        public static string EscapeSingleQuotes(this string source)
+        {
+            return source.Replace("\'", @"''");
+        }
+        public static string EscapeDoubleQuotes(this string source)
+        {
+            return source.Replace("\"", @"""");
+        }
+        public static string EscapeNewLineCarriageReturn(this string source)
+        {
+            return source.Replace("\r\n", "\\r\\n");
+        }
     }
 
 }

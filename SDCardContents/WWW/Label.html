@@ -1,0 +1,90 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <style>
+        span {
+            color: red;
+        }
+    </style>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/overcast/jquery-ui.min.css">
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script> 
+    <script src="https://cdn.jsdelivr.net/jquery.autogrow/1.2.2/jquery.autogrow.js"></script>
+</head>
+<body>
+    <div id="container">
+        <header>
+            <nav>
+            </nav>
+        </header>
+        <div id="content">
+            <form id="frmUpdateLabel" action="" method="post">
+                <textarea id="LabelFormat" name="LabelFormat" cols="50" rows="10"></textarea>
+                <input id="btnSubmit" type="submit" value="Update">
+            </form>
+            <span></span>
+        </div>
+        <footer></footer>
+    </div>
+    <script>
+        var sLabelURL = '/Label';
+        var sUpdateLabelURL = '/Label/Update';
+
+
+
+        $(document).ready(function () {
+            getLabel();
+            $("#btnSubmit").button();
+        });
+
+        $("#frmUpdateLabel").submit(function (event) {
+            event.preventDefault();
+
+            $.ajaxSetup({ async: false, dataType: "json" });
+            $.post(sUpdateLabelURL, $("#frmUpdateLabel").serialize())
+                .done(function (data) {
+                    console.log("done posting label data...");
+                    $("span").text(data.Message).show().fadeOut(10000);
+                });
+            $.ajaxSetup({ async: true }); //Sets ajax back up to synchronous
+        });
+
+
+        function getLabel() {
+            var Label;
+
+            $.ajaxSetup({ async: false, dataType: "json" });
+            $.getJSON(sLabelURL, {})
+                .done(function (data) {
+                    $("#LabelFormat").val(data.Format); 
+                }).fail(function (XMLHttpRequest, textStatus, errorThrown) {
+                    console.log("error thrown when getting label...");
+                    $("span").text(errorThrown).show().fadeOut(10000);
+                });
+            $.ajaxSetup({ async: true }); //Sets ajax back up to synchronous
+
+            //$.ajaxSetup({ async: false, dataType: "json" });
+            //$.getJSON(sLabelURL, {}, function (data) {
+            //    console.log("first success");
+            //    Label = data;
+            //})
+            //    .done(function () {
+            //        console.log("second success");
+            //    })
+            //    .fail(function () {
+            //        console.log("error");
+            //    })
+            //    .always(function () {
+            //        console.log("complete");
+            //        $.ajaxSetup({ async: true }); //Sets ajax back up to synchronous
+            //    });
+            return Label;
+        }
+    </script>
+
+</body>
+</html>
