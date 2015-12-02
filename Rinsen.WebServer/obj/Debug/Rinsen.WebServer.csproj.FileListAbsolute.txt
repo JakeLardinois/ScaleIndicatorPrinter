@@ -30,14 +30,9 @@ C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\Rinsen
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\TinyCLR_DebugReferences.cache
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\Rinsen.WebServer.dll
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\Rinsen.WebServer.pdb
-C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\be\Rinsen.WebServer.pe
-C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\be\Rinsen.WebServer.pdbx
-C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\le\Rinsen.WebServer.pe
-C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\le\Rinsen.WebServer.pdbx
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\LE\Json.NetMF.pe
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\BE\Json.NetMF.pe
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\LE\Json.NetMF.pdbx
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\BE\Json.NetMF.pdbx
-C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\Json.NetMF.dll
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\Json.NetMF.pdb
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\Json.NetMF.xml

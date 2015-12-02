@@ -64,7 +64,7 @@ namespace ScaleIndicatorPrinter
                 Settings.RetrieveSettingsFromSDCard(@"\SD\WWW\", "LabelFormat.txt", "Job.txt", "Operation.txt", "ShopTrakTransactionsURL.txt",
                     "PieceWeight.txt", "NetWeightAdjustment.txt", "BackgroundColor.txt");
 
-                mMenu.SetBackLightColor(Settings.BackgroundColor);
+                mMenu.SetBackLightColor(Settings.BacklightColor);
 
                 // initialize the serial port for data being input via COM1
                 mIndicatorScannerSerialPort = new MySerialPort(SerialPorts.COM1, BaudRate.Baudrate9600, Parity.None, DataBits.Eight, StopBits.One);
@@ -88,7 +88,6 @@ namespace ScaleIndicatorPrinter
                 webServer.SetFileAndDirectoryService(new FileAndDirectoryService());
                 webServer.RouteTable.DefaultControllerName = "Default";
                 webServer.StartServer(80);//If port is not specified, then default is port 8500
-
 
                 //Display appropriate information to the user...
                 mMenu.DisplayInformation(Settings);
@@ -141,8 +140,8 @@ namespace ScaleIndicatorPrinter
                             ++Settings.IncrementSelection;
                         else if (mMenu.MenuSelection == MenuSelection.ChangeBackgroundColor)
                         {
-                            Settings.NextBackgroundColor();
-                            mMenu.SetBackLightColor(Settings.BackgroundColor);
+                            Settings.NextBacklightColor();
+                            mMenu.SetBackLightColor(Settings.BacklightColor);
                             mMenu.DisplayInformation(Settings);
                         }
                         else
@@ -156,8 +155,8 @@ namespace ScaleIndicatorPrinter
                             --Settings.IncrementSelection;
                         else if (mMenu.MenuSelection == MenuSelection.ChangeBackgroundColor)
                         {
-                            Settings.PreviousBackgroundColor();
-                            mMenu.SetBackLightColor(Settings.BackgroundColor);
+                            Settings.PreviousBacklightColor();
+                            mMenu.SetBackLightColor(Settings.BacklightColor);
                             mMenu.DisplayInformation(Settings);
                         }
                         else
@@ -195,8 +194,8 @@ namespace ScaleIndicatorPrinter
                         }
                         else if (mMenu.MenuSelection == MenuSelection.ChangeBackgroundColor)
                         {
-                            Settings.StoreBackgroundColor();
-                            mMenu.SetBackLightColor(Settings.BackgroundColor);
+                            Settings.StoreBacklightColor();
+                            mMenu.SetBackLightColor(Settings.BacklightColor);
                             mMenu.MenuSelection = MenuSelection.ViewBackgroundColor;
                             mMenu.DisplayInformation(Settings);
                         }

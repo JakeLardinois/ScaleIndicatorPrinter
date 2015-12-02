@@ -154,53 +154,66 @@ namespace ScaleIndicatorPrinter.Models
              Debug.Print("NetWeightAdjustment Decremented to: " + NetWeightAdjustment);
         }
 
-        private string mBackgroundColorFileName { get; set; }
-        private int intBackGroundColor { get; set; }
-        public BacklightColor BackgroundColor {
-            get { return (BacklightColor)intBackGroundColor; }
-            set { intBackGroundColor = (int)value; }
-        }
-        public string BackgroundColorName { get { return BackgroundColor.GetColorName(); } }
-        public void StoreBackgroundColor()
+        private string mBacklightColorFileName { get; set; }
+        private int mintBacklightColor { get; set; }
+        public BacklightColor BacklightColor
         {
-            string strFilePathAndName = mRootDirectory.FullName + "\\" + mBackgroundColorFileName;
+            get { return (BacklightColor)mintBacklightColor; }
+            set { mintBacklightColor = (int)value; }
+        }
+        public string BacklightColorName { get { return BacklightColor.GetColorName(); } }
+        public void StoreBacklightColor()
+        {
+            string strFilePathAndName = mRootDirectory.FullName + "\\" + mBacklightColorFileName;
             using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
-                objStreamWriter.WriteLine(BackgroundColor);
-            Debug.Print("Wrote Contents: " + BackgroundColor + "\r\nTo File: " + strFilePathAndName);
+                objStreamWriter.WriteLine(BacklightColor);
+            Debug.Print("Wrote Contents: " + BacklightColor + "\r\nTo File: " + strFilePathAndName);
         }
-        public void NextBackgroundColor()
+        public void NextBacklightColor()
         {
-            intBackGroundColor = ++intBackGroundColor % (int)BacklightColor.ColorCount;
+            mintBacklightColor = ++mintBacklightColor % (int)BacklightColor.ColorCount;
         }
-        public void PreviousBackgroundColor()
+        public void PreviousBacklightColor()
         {
-            if (intBackGroundColor == 0)
-                intBackGroundColor = (int)BacklightColor.ColorCount;
-            intBackGroundColor = --intBackGroundColor % (int)BacklightColor.ColorCount;
+            if (mintBacklightColor == 0)
+                mintBacklightColor = (int)BacklightColor.ColorCount;
+            mintBacklightColor = --mintBacklightColor % (int)BacklightColor.ColorCount;
         }
 
+        public bool IsDhcpEnabled { get { return mIsDhcpEnabled; } }
+        private bool mIsDhcpEnabled { get; set; }
+        public NetworkInterfaceType NetworkInterfaceType { get { return mNetworkInterfaceType; } }
+        private NetworkInterfaceType mNetworkInterfaceType { get; set; }
+        public string MACAddress { get { return mMACAddress; } }
+        private string mMACAddress { get; set; }
         public string IPAddress { get { return mIPAddress; } }
         private string mIPAddress { get; set; }
         public string NetMask { get { return mNetMask; } }
         private string mNetMask { get; set; }
-        public string MACAddress { get { return mMACAddress; } }
-        private string mMACAddress { get; set; }
+        public string Gateway { get { return mGateway; } }
+        private string mGateway { get; set; }
+        public string[] DnsAddresses { get { return mDnsAddresses; } }
+        private string[] mDnsAddresses { get; set; }
         public void RetrieveNetworkSettings(NetworkInterface objNic)
         {
             //var objNic = Microsoft.SPOT.Net.NetworkInformation.Wireless80211.GetAllNetworkInterfaces()[0];
             //var objNic = Microsoft.SPOT.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()[0];
+            mIsDhcpEnabled = objNic.IsDhcpEnabled;
+            mNetworkInterfaceType = objNic.NetworkInterfaceType;
             mIPAddress = objNic.IPAddress;
             mNetMask = objNic.SubnetMask;
             mMACAddress = objNic.PhysicalAddress.ToHexString();
+            mGateway = objNic.GatewayAddress;
+            mDnsAddresses = objNic.DnsAddresses;
 
             Debug.Print("Is DHCP Enabled: " + objNic.IsDhcpEnabled);
-            Debug.Print("NIC Type: " + objNic.NetworkInterfaceType);
+            Debug.Print("NIC Type: " + objNic.NetworkInterfaceType.GetNetworkInterfaceTypeName());
             Debug.Print("MAC Address: " + MACAddress);
             Debug.Print("IP Address: " + IPAddress);
             Debug.Print("NetMask: " + NetMask);
             Debug.Print("Gateway: " + objNic.GatewayAddress);
-            foreach (var dnsAddress in objNic.DnsAddresses)
-                Debug.Print("Dns address: " + dnsAddress);
+            foreach (var strDnsAddress in DnsAddresses)
+                Debug.Print("Dns address: " + strDnsAddress);
         }
 
         public void RetrieveSettingsFromSDCard(string RootDirectoryPath, string LabelFormatFileName, string JobNumberFileName, string OperationFileName,
@@ -252,11 +265,11 @@ namespace ScaleIndicatorPrinter.Models
             else
                 CreateInformationFile(mNetWeightAdjustmentFileName, InformationType.NetWeightAdjustment);
 
-            mBackgroundColorFileName = BackgroundColorFileName;
-            if (File.Exists(mRootDirectory.FullName + "\\" + mBackgroundColorFileName))
-                RetrieveInformationFromFile(mBackgroundColorFileName, InformationType.ColorName);
+            mBacklightColorFileName = BackgroundColorFileName;
+            if (File.Exists(mRootDirectory.FullName + "\\" + mBacklightColorFileName))
+                RetrieveInformationFromFile(mBacklightColorFileName, InformationType.ColorName);
             else
-                CreateInformationFile(mBackgroundColorFileName, InformationType.ColorName);
+                CreateInformationFile(mBacklightColorFileName, InformationType.ColorName);
         }
 
         private void RetrieveInformationFromFile(string FileName, InformationType Information)
@@ -299,8 +312,8 @@ namespace ScaleIndicatorPrinter.Models
                                 break;
                             case InformationType.ColorName:
                                 var strBackgroundColor = objStreamReader.ReadLine().Trim();
-                                BackgroundColor = double.TryParse(strBackgroundColor, out dblTemp) ? (BacklightColor)dblTemp : (BacklightColor)0;
-                                Debug.Print("BackgroundColor Read from SD Card:\r\n" + BackgroundColor);
+                                BacklightColor = double.TryParse(strBackgroundColor, out dblTemp) ? (BacklightColor)dblTemp : (BacklightColor)0;
+                                Debug.Print("BackgroundColor Read from SD Card:\r\n" + BacklightColor);
                                 break;
                         }
                 }
@@ -375,7 +388,7 @@ namespace ScaleIndicatorPrinter.Models
                         enumBacklightColor = BacklightColor.White;
                         objStreamWriter.WriteLine(enumBacklightColor);
                         objStreamWriter.WriteLine();
-                        BackgroundColor = enumBacklightColor;
+                        BacklightColor = enumBacklightColor;
                         Debug.Print("Wrote contents: \r\n" + enumBacklightColor + " (" + enumBacklightColor.GetColorName() + ")\r\nTo File: " + FilePathAndName);
                         break;
                 }

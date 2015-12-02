@@ -35,6 +35,7 @@
   <ItemGroup>
     <Compile Include="Controllers\DefaultController.cs" />
     <Compile Include="Controllers\LabelController.cs" />
+    <Compile Include="Models\CartScaleWebVariables.cs" />
     <Compile Include="Models\Forbidden.cs" />
     <Compile Include="Models\IndicatorData.cs" />
     <Compile Include="Models\Label.cs" />

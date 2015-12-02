@@ -4,6 +4,7 @@ using Microsoft.SPOT;
 using NetMf.CommonExtensions;
 using Json.NETMF;
 using NetduinoRGBLCDShield;
+using Microsoft.SPOT.Net.NetworkInformation;
 
 
 namespace ScaleIndicatorPrinter.Models
@@ -45,6 +46,19 @@ namespace ScaleIndicatorPrinter.Models
             }
         }
 
+        public static string GetNetworkInterfaceTypeName(this NetworkInterfaceType source)
+        {
+            switch (source)
+            {
+                case NetworkInterfaceType.Ethernet:
+                    return "Ethernet";
+                case NetworkInterfaceType.Wireless80211:
+                    return "Wireless802.11";
+                default:
+                    return "Unknown";
+            }
+        }
+
         public static BacklightColor GetBackLightColor(this string source)
         {
             switch (source)
@@ -68,6 +82,15 @@ namespace ScaleIndicatorPrinter.Models
                 default:
                     return BacklightColor.Off;
             }
+        }
+
+        public static string Flatten(this string[] source)
+        {
+            var strTemp = string.Empty;
+
+            foreach (var str in source)
+                strTemp += str + ", ";
+            return strTemp.Substring(0, strTemp.Length - 2);
         }
 
         public static string EscapeSingleQuotes(this string source)

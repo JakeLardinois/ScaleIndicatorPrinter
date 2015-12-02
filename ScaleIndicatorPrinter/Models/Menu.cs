@@ -93,7 +93,7 @@ namespace ScaleIndicatorPrinter.Models
                 case MenuSelection.ViewBackgroundColor:
                     lcdBoard.Write("Background Color:");
                     lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(objSettings.BackgroundColorName);
+                    lcdBoard.Write(objSettings.BacklightColorName);
                     break;
                 case MenuSelection.ViewNetworkInfo:
                     lcdBoard.Write("View Network Info");
@@ -116,7 +116,7 @@ namespace ScaleIndicatorPrinter.Models
                 case MenuSelection.ChangeBackgroundColor:
                     lcdBoard.Write("Change Color...");
                     lcdBoard.SetPosition(1, 0);
-                    lcdBoard.Write(objSettings.BackgroundColorName);
+                    lcdBoard.Write(objSettings.BacklightColorName);
                     break;
                 case MenuSelection.DisplayNetworkInfo:
                     lcdBoard.Write(objSettings.IPAddress);

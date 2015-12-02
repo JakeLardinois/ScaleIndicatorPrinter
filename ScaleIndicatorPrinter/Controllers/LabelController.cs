@@ -20,16 +20,10 @@ namespace ScaleIndicatorPrinter.Controllers
             var formCollection = GetFormCollection();
 
             if (formCollection.ContainsKey("LabelFormat"))
-                SetJsonResult(new JSONResult { Success = true, Message = "The Results have been successfully saved!" });
+                SetJsonResult(new JSONResult { Success = true, Message = "The Label information has been successfully saved!" });
             else
-                SetJsonResult(new JSONResult { Success = false, Message = "Failed to save the results..." });
+                SetJsonResult(new JSONResult { Success = false, Message = "Failed to save the Label Info..." });
         }
-    }
-
-    class JSONResult
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; }
     }
 
     class Label

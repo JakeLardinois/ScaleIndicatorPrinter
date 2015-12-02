@@ -1,0 +1,224 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <style>
+        h1.Title {
+            color: cornflowerblue;
+        }
+        span.Messages {
+            color: red;
+        }
+        .float-left {
+            float: left;
+        }
+        .float-right {
+            float: right;
+        }
+        .clear-fix {
+            clear: both;
+        }
+        .clear-left {
+            clear: left;
+        }
+        .clear-right {
+            clear: right;
+        }
+        input {
+            width: 100%;
+        }
+    </style>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/overcast/jquery-ui.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/jquery.multiselect/1.13/jquery.multiselect.css">
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script> 
+    <script src="https://cdn.jsdelivr.net/jquery.autogrow/1.2.2/jquery.autogrow.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.multiselect/1.13/jquery.multiselect.min.js"></script>
+</head>
+<body>
+    <div id="container">
+        <header>
+            <div class="float-left"><h1 class="Title">Default Page for Cart Scale <span id="TitleMACAddress"></span></h1></div>
+            <nav>
+            </nav>
+        </header>
+        <div class="clear-fix" id="content">
+            <div><span class="Messages" id="Messages"></span></div>
+            <div class ="float-left">
+                <div class="float-left">
+                    <fieldset>
+                        <legend>Network Information</legend>
+                        <label for="IsDhcpEnabled">Dhcp</label>
+                        <input type="text" id="IsDhcpEnabled" readonly value="">
+                        <br />
+                        <label for="NetworkInterfaceType">Interface Type</label>
+                        <input type="text" id="NetworkInterfaceType" readonly value="">
+                        <br />
+                        <label for="IPAddress">IPAddress</label>
+                        <input type="text" id="IPAddress" readonly value="">
+                        <br />
+                        <label for="NetMask">NetMask</label>
+                        <input type="text" id="NetMask" readonly value="">
+                        <br />
+                        <label for="Gateway">Gateway</label>
+                        <input type="text" id="Gateway" readonly value="">
+                        <br />
+                        <label for="MACAddress">MAC Address</label>
+                        <input type="text" id="MACAddress" readonly value="">
+                        <br />
+                        <label for="DnsAddresses">DNS</label>
+                        <input type="text" id="DnsAddresses" readonly value="">
+                    </fieldset>
+                </div>
+                <div class="float-left">
+                    <fieldset>
+                        <legend>Label Information</legend>
+                        <form class="preventsubmit" id="frmUpdateLabel" action="" method="post">
+                            <textarea id="LabelFormat" name="LabelFormat" cols="50" rows="10"></textarea>
+                            <br />
+                            <input id="btnUpdateLabel" type="button" value="Update Label">
+                        </form>
+                        <span class="Messages" id="LabelMessages"></span>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="float-left">
+                <div class="float-left">
+                    <fieldset>
+                        <legend>Job Information</legend>
+                        <form class="preventsubmit" id="frmUpdateJobInfo" action="" method="post">
+                            <label for="job">Job</label>
+                            <input type="text" id="Job" name="Job" placeholder="########-###" value="">
+                            <label for="Suffix">Suffix</label>
+                            <input type="text" id="Suffix" name="Suffix" value="">
+                            <br />
+                            <label for="Operation">Operation</label>
+                            <input type="text" id="Operation" name="Operation" value="">
+                            <br />
+                            <input id="btnUpdateJobInfo" type="button" value="Update Job Info">
+                        </form>
+                        <span class="Messages" id="JobInfoMessages"></span>
+                    </fieldset>
+                </div>
+                <div class="float-left">
+                    <fieldset>
+                        <legend>Scale Settings</legend>
+                        <form class="preventsubmit" id="frmUpdateScaleSettings" action="" method="post">
+                            <label for="ShopTrakTransactionsURL">Data URL</label>
+                            <input type="text" id="ShopTrakTransactionsURL" name="ShopTrakTransactionsURL" value="">
+                            <br />
+                            <label for="BacklightColors">Backlight</label>
+                            <select id="BacklightColors"></select>
+                            <br />
+                            <label for="PieceWeight">Piece Weight</label>
+                            <input type="text" id="PieceWeight" name="PieceWeight" value="">
+                            <label for="NetWeightAdjustment">Net Weight Adjustment</label>
+                            <input type="text" id="NetWeightAdjustment" name="NetWeightAdjustment" value="">
+                            <br />
+                            <input id="btnUpdateScaleSettings" type="button" value="Update Scale Settings">
+                        </form>
+                        <span class="Messages" id="ScaleSettingsMessages"></span>
+                    </fieldset>
+                </div>
+            </div>
+            
+        </div>
+        <footer></footer>
+    </div>
+    <script>
+        var intMessageFadeTimeout = 10000;
+        var sSettingsURL = 'Default/Settings';
+        var sUpdateLabelURL = '/Label/Update';
+        var sUpdateJobInfolURL = '/JobInfo/Update';
+
+
+        $(document).ready(function () {
+            getSettings();
+        });
+
+        //Prevent forms from submitting so that I can use the jquery button click method with an ajax call instead...
+        $(".preventsubmit").submit(function (event) {
+            event.preventDefault();
+        });
+
+        $("#btnUpdateLabel").button().click(function () {
+            $.ajaxSetup({ async: false, dataType: "json" });
+            $.post(sUpdateLabelURL, $("#frmUpdateLabel").serialize())
+                .done(function (data) {
+                    console.log("done posting label data...");
+                    $("#LabelMessages").text(data.Message).show().fadeOut(intMessageFadeTimeout);
+                });
+            $.ajaxSetup({ async: true }); //Sets ajax back up to synchronous
+        })
+
+        $("#btnUpdateJobInfo").button().click(function () {
+            $.ajaxSetup({ async: false, dataType: "json" });
+            $.post(sUpdateLabelURL, $("#frmUpdateJobInfo").serialize())
+                .done(function (data) {
+                    console.log("done posting JobInfo data...");
+                    $("#JobInfoMessages").text(data.Message).show().fadeOut(intMessageFadeTimeout);
+                });
+            $.ajaxSetup({ async: true }); //Sets ajax back up to synchronous
+        })
+
+        $("#btnUpdateScaleSettings").button().click(function () {
+            $.ajaxSetup({ async: false, dataType: "json" });
+            $.post(sUpdateLabelURL, $("#frmUpdateScaleSettings").serialize())
+                .done(function (data) {
+                    console.log("done posting ScaleSettings data...");
+                    $("#ScaleSettingsMessages").text(data.Message).show().fadeOut(intMessageFadeTimeout);
+                });
+            $.ajaxSetup({ async: true }); //Sets ajax back up to synchronous
+        })
+
+        function getSettings() {
+            $.ajaxSetup({ async: false, dataType: "json" });
+            $.getJSON(sSettingsURL, {})
+                .done(function (data) {
+                    $("#TitleMACAddress").text(data.MACAddress);
+                    $("#MACAddress").val(data.MACAddress);
+                    $("#IsDhcpEnabled").val(data.IsDhcpEnabled);
+                    $("#NetworkInterfaceType").val(data.NetworkInterfaceType);
+                    $("#IPAddress").val(data.IPAddress);
+                    $("#NetMask").val(data.NetMask);
+                    $("#Gateway").val(data.Gateway);
+                    $("#DnsAddresses").val(data.DnsAddresses);
+
+                    $("#LabelFormat").val(data.LabelFormat);
+
+                    $("#Job").val(data.Job);
+                    $("#Suffix").val(data.Suffix);
+                    $("#Operation").val(data.Operation);
+
+                    $("#ShopTrakTransactionsURL").val(data.ShopTrakTransactionsURL);
+                    $("#PieceWeight").val(data.PieceWeight);
+                    $("#NetWeightAdjustment").val(data.Operation);
+
+                    data.BacklightColors.forEach(function (obj) {
+                        if (obj == data.BacklightColor)
+                            $("#BacklightColors").append("<option selected=\"selected\" value=\"" + obj + "\">" + obj + "</option>");
+                        else
+                            $("#BacklightColors").append("<option value=\"" + obj + "\">" + obj + "</option>");
+                    });
+                    $("#BacklightColors").multiselect({
+                        multiple: false,
+                        minWidth: 300,
+                        header: false, // "Select a Work Order Type",
+                        noneSelectedText: "Select Type",
+                        selectedList: 1 //this is what puts the selected value onto the select box...
+                    });
+
+                }).fail(function (XMLHttpRequest, textStatus, errorThrown) {
+                    console.log("error thrown when getting settings...");
+                    $("#Messages").text(errorThrown).show().fadeOut(intMessageFadeTimeout);
+                });
+            $.ajaxSetup({ async: true }); //Sets ajax back up to synchronous
+        }
+        
+    </script>
+
+</body>
+</html>
