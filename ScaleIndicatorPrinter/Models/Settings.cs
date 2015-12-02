@@ -31,7 +31,7 @@ namespace ScaleIndicatorPrinter.Models
         {
             string strFilePathAndName = mRootDirectory.FullName + "\\" + mJobNumberFileName;
             using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
-                objStreamWriter.WriteLine(Job);
+                objStreamWriter.WriteLine(JobNumber);
             Debug.Print("Wrote Contents: " + Job + "\r\nTo File: " + strFilePathAndName);
         }
         public string Job { 
@@ -161,7 +161,7 @@ namespace ScaleIndicatorPrinter.Models
             get { return (BacklightColor)mintBacklightColor; }
             set { mintBacklightColor = (int)value; }
         }
-        public string BacklightColorName { get { return BacklightColor.GetColorName(); } }
+        public string BacklightColorName { get { return BacklightColor.GetName(); } }
         public void StoreBacklightColor()
         {
             string strFilePathAndName = mRootDirectory.FullName + "\\" + mBacklightColorFileName;
@@ -207,7 +207,7 @@ namespace ScaleIndicatorPrinter.Models
             mDnsAddresses = objNic.DnsAddresses;
 
             Debug.Print("Is DHCP Enabled: " + objNic.IsDhcpEnabled);
-            Debug.Print("NIC Type: " + objNic.NetworkInterfaceType.GetNetworkInterfaceTypeName());
+            Debug.Print("NIC Type: " + objNic.NetworkInterfaceType.GetName());
             Debug.Print("MAC Address: " + MACAddress);
             Debug.Print("IP Address: " + IPAddress);
             Debug.Print("NetMask: " + NetMask);
@@ -389,7 +389,7 @@ namespace ScaleIndicatorPrinter.Models
                         objStreamWriter.WriteLine(enumBacklightColor);
                         objStreamWriter.WriteLine();
                         BacklightColor = enumBacklightColor;
-                        Debug.Print("Wrote contents: \r\n" + enumBacklightColor + " (" + enumBacklightColor.GetColorName() + ")\r\nTo File: " + FilePathAndName);
+                        Debug.Print("Wrote contents: \r\n" + enumBacklightColor + " (" + enumBacklightColor.GetName() + ")\r\nTo File: " + FilePathAndName);
                         break;
                 }
                 Debug.Print("Finished Write...");

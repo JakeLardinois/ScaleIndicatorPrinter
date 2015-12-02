@@ -2,6 +2,7 @@ using System;
 using Microsoft.SPOT;
 
 using Rinsen.WebServer;
+using ScaleIndicatorPrinter.Models;
 
 
 namespace ScaleIndicatorPrinter.Controllers
@@ -13,9 +14,9 @@ namespace ScaleIndicatorPrinter.Controllers
             var formCollection = GetFormCollection();
 
             if (formCollection.ContainsKey("Job") && formCollection.ContainsKey("Suffix") && formCollection.ContainsKey("Operation"))
-                SetJsonResult(new JSONResult { Success = true, Message = "The Results have been successfully saved!" });
+                SetJsonResult(new JsonResult { Success = true, Message = "The Job Info has been successfully saved!" });
             else
-                SetJsonResult(new JSONResult { Success = false, Message = "Failed to save the results..." });
+                SetJsonResult(new JsonResult { Success = false, Message = "Failed to save the Job Info..." });
         }
     }
 }

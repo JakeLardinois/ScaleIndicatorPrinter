@@ -34,10 +34,13 @@
   <Import Project="$(NetMfTargetsBaseDir)$(TargetFrameworkVersion)\CSharp.Targets" />
   <ItemGroup>
     <Compile Include="Controllers\DefaultController.cs" />
+    <Compile Include="Controllers\JobInfoController.cs" />
     <Compile Include="Controllers\LabelController.cs" />
+    <Compile Include="Controllers\ScaleController.cs" />
     <Compile Include="Models\CartScaleWebVariables.cs" />
     <Compile Include="Models\Forbidden.cs" />
     <Compile Include="Models\IndicatorData.cs" />
+    <Compile Include="Models\JsonResult.cs" />
     <Compile Include="Models\Label.cs" />
     <Compile Include="Models\CD74HC4067.cs" />
     <Compile Include="Models\Menu.cs" />

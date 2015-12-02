@@ -303,8 +303,8 @@ namespace ScaleIndicatorPrinter
             if (strMessage == string.Empty || strMessage == null )
                 return;
 
-            Debug.Print("The type of data expected is: " + mMenu.DataRecieved);
-            Debug.Print("Data contents recieved from the Serial Port: " + strMessage);
+            Debug.Print("The type of data expected is: " + mMenu.DataRecieved.GetName());
+            Debug.Print("Data contents recieved from the Serial Port:\r\n" + strMessage);
             switch (mMenu.DataRecieved)
             {
                 case RecievedData.ScaleIndicator:
@@ -313,7 +313,6 @@ namespace ScaleIndicatorPrinter
                     if (objIndicatorData.HasValidDataString)
                     {
                         Debug.Print("Valid Data was sent from the Indicator...");
-                        mMenu.DataRecieved = RecievedData.None;
                         /*A new thread must be started in order for the WebGet function to work properly; otherwise WebGet(objIndicatorData) would just silently fail...
                          * http://www.codeproject.com/Articles/795829/Multithreading-with-Netduino-and-NET-Microframework
                          * https://www.youtube.com/watch?v=YZOrORB88-s */

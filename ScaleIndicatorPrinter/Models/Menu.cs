@@ -165,7 +165,7 @@ namespace ScaleIndicatorPrinter.Models
 
         public void SetBackLightColor(BacklightColor color)
         {
-            Debug.Print("Changing Background color to " + color.GetColorName());
+            Debug.Print("Changing Background color to " + color.GetName());
             lcdBoard.SetBacklight(color);
         }
     }

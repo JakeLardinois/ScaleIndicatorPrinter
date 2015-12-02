@@ -38,7 +38,7 @@ namespace ScaleIndicatorPrinter.Controllers
 
 
             for (var intCounter = 0; intCounter < intColorCount; intCounter++)
-                objColors[intCounter] = ((NetduinoRGBLCDShield.BacklightColor)intCounter).GetColorName();
+                objColors[intCounter] = ((NetduinoRGBLCDShield.BacklightColor)intCounter).GetName();
 
 
                 //Populate the Settings NIC variables...
@@ -46,7 +46,7 @@ namespace ScaleIndicatorPrinter.Controllers
 
             var objFormSettings = new CartScaleWebVariables {
                 IsDhcpEnabled = Program.Settings.IsDhcpEnabled,
-                NetworkInterfaceType = Program.Settings.NetworkInterfaceType.GetNetworkInterfaceTypeName(),
+                NetworkInterfaceType = Program.Settings.NetworkInterfaceType.GetName(),
                 IPAddress = Program.Settings.IPAddress,
                 NetMask = Program.Settings.NetMask,
                 Gateway = Program.Settings.Gateway,
@@ -68,11 +68,5 @@ namespace ScaleIndicatorPrinter.Controllers
 
             SetJsonResult(objFormSettings);
         }
-    }
-
-    class JSONResult
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; }
     }
 }

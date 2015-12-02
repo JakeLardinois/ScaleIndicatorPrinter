@@ -21,7 +21,7 @@ namespace ScaleIndicatorPrinter.Models
             return strTemp;
         }
 
-        public static string GetColorName(this BacklightColor source)
+        public static string GetName(this BacklightColor source)
         {
             switch (source)
             {
@@ -46,7 +46,7 @@ namespace ScaleIndicatorPrinter.Models
             }
         }
 
-        public static string GetNetworkInterfaceTypeName(this NetworkInterfaceType source)
+        public static string GetName(this NetworkInterfaceType source)
         {
             switch (source)
             {
@@ -54,8 +54,27 @@ namespace ScaleIndicatorPrinter.Models
                     return "Ethernet";
                 case NetworkInterfaceType.Wireless80211:
                     return "Wireless802.11";
-                default:
+                case NetworkInterfaceType.Unknown:
                     return "Unknown";
+                default:
+                    return "Undefined";
+            }
+        }
+
+        public static string GetName(this RecievedData source)
+        {
+            switch (source)
+            {
+                case RecievedData.ScaleIndicator:
+                    return "ScaleIndicator";
+                case RecievedData.ScannerJobAndSuffix:
+                    return "ScannerJobAndSuffix";
+                case RecievedData.ScannerOperation:
+                    return "ScannerOperation";
+                case RecievedData.None:
+                    return "None";
+                default:
+                    return "Undefined";
             }
         }
 

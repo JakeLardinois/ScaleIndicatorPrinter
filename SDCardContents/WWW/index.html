@@ -133,7 +133,7 @@
         var sSettingsURL = 'Default/Settings';
         var sUpdateLabelURL = '/Label/Update';
         var sUpdateJobInfolURL = '/JobInfo/Update';
-
+        var sUpdateScaleInfoURL = '/Scale/Update';
 
         $(document).ready(function () {
             getSettings();
@@ -156,7 +156,7 @@
 
         $("#btnUpdateJobInfo").button().click(function () {
             $.ajaxSetup({ async: false, dataType: "json" });
-            $.post(sUpdateLabelURL, $("#frmUpdateJobInfo").serialize())
+            $.post(sUpdateJobInfolURL, $("#frmUpdateJobInfo").serialize())
                 .done(function (data) {
                     console.log("done posting JobInfo data...");
                     $("#JobInfoMessages").text(data.Message).show().fadeOut(intMessageFadeTimeout);
@@ -165,8 +165,12 @@
         })
 
         $("#btnUpdateScaleSettings").button().click(function () {
+            var data = $("#frmUpdateScaleSettings").serializeArray();
+
+            data.push({ name: 'BacklightColor', value: $("#BacklightColors").val() });
+
             $.ajaxSetup({ async: false, dataType: "json" });
-            $.post(sUpdateLabelURL, $("#frmUpdateScaleSettings").serialize())
+            $.post(sUpdateScaleInfoURL, data)
                 .done(function (data) {
                     console.log("done posting ScaleSettings data...");
                     $("#ScaleSettingsMessages").text(data.Message).show().fadeOut(intMessageFadeTimeout);
@@ -195,7 +199,7 @@
 
                     $("#ShopTrakTransactionsURL").val(data.ShopTrakTransactionsURL);
                     $("#PieceWeight").val(data.PieceWeight);
-                    $("#NetWeightAdjustment").val(data.Operation);
+                    $("#NetWeightAdjustment").val(data.NetWeightAdjustment);
 
                     data.BacklightColors.forEach(function (obj) {
                         if (obj == data.BacklightColor)
