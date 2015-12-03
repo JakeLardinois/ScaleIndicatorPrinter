@@ -216,6 +216,12 @@ namespace ScaleIndicatorPrinter.Models
                 Debug.Print("Dns address: " + strDnsAddress);
         }
 
+        public string Item { get; set; }
+        public string Employees { get; set; }
+        public int PieceCount { get { return (int)((NetWeight + NetWeightAdjustment) / PieceWeight); } }
+        public double NetWeight { get; set; }
+        public DateTime PrintDateTime { get; set; }
+
         public void RetrieveSettingsFromSDCard(string RootDirectoryPath, string LabelFormatFileName, string JobNumberFileName, string OperationFileName,
             string ShopTrakTransactionsURLFileName, string PieceWeightFileName, string NetWeightAdjustmentFileName, string BackgroundColorFileName)
         {

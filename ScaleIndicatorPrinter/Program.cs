@@ -310,15 +310,24 @@ namespace ScaleIndicatorPrinter
                 case RecievedData.ScaleIndicator:
                     var objIndicatorData = new IndicatorData(strMessage);
 
-                    if (objIndicatorData.HasValidDataString)
-                    {
-                        Debug.Print("Valid Data was sent from the Indicator...");
-                        /*A new thread must be started in order for the WebGet function to work properly; otherwise WebGet(objIndicatorData) would just silently fail...
-                         * http://www.codeproject.com/Articles/795829/Multithreading-with-Netduino-and-NET-Microframework
-                         * https://www.youtube.com/watch?v=YZOrORB88-s */
-                        var DataRequestThread = new Thread(delegate() { WebGet(objIndicatorData); });
-                        DataRequestThread.Start();
-                    }
+                        if (objIndicatorData.HasValidDataString)
+                        {
+                            Debug.Print("Valid Data was sent from the Indicator...");
+                            Settings.NetWeight = objIndicatorData.NetWeight;
+                            if (mMenu.MenuSelection == MenuSelection.ViewPieceCount)
+                                mMenu.DisplayInformation(Settings);
+                            else
+                            {
+                                /*A new thread must be started in order for the WebGet function to work properly; otherwise WebGet(objIndicatorData) would just silently fail...
+                             * http://www.codeproject.com/Articles/795829/Multithreading-with-Netduino-and-NET-Microframework
+                             * https://www.youtube.com/watch?v=YZOrORB88-s */
+                                var DataRequestThread = new Thread(delegate() { WebGet(objIndicatorData); });
+                                DataRequestThread.Start();
+                            }
+                            
+                        }
+                    
+                   
                     break;
                 case RecievedData.ScannerJobAndSuffix:
                     Settings.JobNumber = strMessage;
@@ -351,13 +360,14 @@ namespace ScaleIndicatorPrinter
                     throw new ApplicationException("HTTP Response: " + response.ResponseCode.ToString());
                 else if (response.ResponseBody == "[]") //Does the REST Dataset return empty?
                     throw new ApplicationException("Nobody punched in that Job.");
- 
+
+
                 ArrayList arrayList = JsonSerializer.DeserializeString(response.ResponseBody) as ArrayList;
                 Hashtable hashtable = arrayList[0] as Hashtable; //get the first row of records
 
                 //Microsoft.SPOT.Time.TimeService.SetTimeZoneOffset(300);
-                var CurrentDateTime = DateTimeExtensions.FromASPNetAjax(hashtable["CurrentDateTime"].ToString()).AddHours(-5);//Central Time Zone has 5 hour offset from UTC
-                var Item = hashtable["item"].ToString();
+                Settings.PrintDateTime = DateTimeExtensions.FromASPNetAjax(hashtable["CurrentDateTime"].ToString()).AddHours(-5);//Central Time Zone has 5 hour offset from UTC
+                Settings.Item = hashtable["item"].ToString();
 
                 StringBuilder strBldrEmployees = new StringBuilder();
                 for (int intCounter = 0; intCounter < arrayList.Count; intCounter++) //iterate over all the rows to get the employees that are punched into the jobs
@@ -366,12 +376,12 @@ namespace ScaleIndicatorPrinter
                     strBldrEmployees.Append(hashtable["emp_num"].ToString().Trim() + ",");
                 }
                 strBldrEmployees.Remove(strBldrEmployees.ToString().LastIndexOf(","), 1); //remove the last comma from the string
-
-                var Pieces = (objIndicatorData.NetWeight + Settings.NetWeightAdjustment) / Settings.PieceWeight;
+                Settings.Employees = strBldrEmployees.ToString();
+                
 
                 //Instantiate my label so that I can populate the Format property with the value pulled from the SDCard.
-                var objLabel = new Label(new string[] { Item, Settings.JobNumber, Settings.OperationNumber.ToString("D3"), strBldrEmployees.ToString(), 
-                    ((int)Pieces).ToString(), CurrentDateTime.ToString("MM/dd/yy h:mm:ss tt"), CurrentDateTime.ToString("dddd") });
+                var objLabel = new Label(new string[] { Settings.Item, Settings.JobNumber, Settings.OperationNumber.ToString("D3"), Settings.Employees, 
+                    Settings.PieceCount.ToString("N"), Settings.PrintDateTime.ToString("MM/dd/yy h:mm:ss tt"), Settings.PrintDateTime.ToString("dddd") });
                 objLabel.LabelFormat = Settings.LabelFormat;
                 Debug.Print("Data written to printer serial port is:\r\n" + objLabel.LabelText);
                 mPrinterSerialPort.WriteString(objLabel.LabelText);

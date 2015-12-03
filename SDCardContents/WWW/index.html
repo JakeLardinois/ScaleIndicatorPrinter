@@ -26,7 +26,7 @@
         .clear-right {
             clear: right;
         }
-        input {
+        input.stretch {
             width: 100%;
         }
     </style>
@@ -52,25 +52,25 @@
                     <fieldset>
                         <legend>Network Information</legend>
                         <label for="IsDhcpEnabled">Dhcp</label>
-                        <input type="text" id="IsDhcpEnabled" readonly value="">
+                        <input class="stretch" type="text" id="IsDhcpEnabled" readonly value="">
                         <br />
                         <label for="NetworkInterfaceType">Interface Type</label>
-                        <input type="text" id="NetworkInterfaceType" readonly value="">
+                        <input class="stretch" type="text" id="NetworkInterfaceType" readonly value="">
                         <br />
                         <label for="IPAddress">IPAddress</label>
-                        <input type="text" id="IPAddress" readonly value="">
+                        <input class="stretch" type="text" id="IPAddress" readonly value="">
                         <br />
                         <label for="NetMask">NetMask</label>
-                        <input type="text" id="NetMask" readonly value="">
+                        <input class="stretch" type="text" id="NetMask" readonly value="">
                         <br />
                         <label for="Gateway">Gateway</label>
-                        <input type="text" id="Gateway" readonly value="">
+                        <input class="stretch" type="text" id="Gateway" readonly value="">
                         <br />
                         <label for="MACAddress">MAC Address</label>
-                        <input type="text" id="MACAddress" readonly value="">
+                        <input class="stretch" type="text" id="MACAddress" readonly value="">
                         <br />
                         <label for="DnsAddresses">DNS</label>
-                        <input type="text" id="DnsAddresses" readonly value="">
+                        <input class="stretch" type="text" id="DnsAddresses" readonly value="">
                     </fieldset>
                 </div>
                 <div class="float-left">
@@ -79,7 +79,7 @@
                         <form class="preventsubmit" id="frmUpdateLabel" action="" method="post">
                             <textarea id="LabelFormat" name="LabelFormat" cols="50" rows="10"></textarea>
                             <br />
-                            <input id="btnUpdateLabel" type="button" value="Update Label">
+                            <input class="stretch" id="btnUpdateLabel" type="button" value="Update Label">
                         </form>
                         <span class="Messages" id="LabelMessages"></span>
                     </fieldset>
@@ -91,14 +91,14 @@
                         <legend>Job Information</legend>
                         <form class="preventsubmit" id="frmUpdateJobInfo" action="" method="post">
                             <label for="job">Job</label>
-                            <input type="text" id="Job" name="Job" placeholder="########-###" value="">
+                            <input type="text" id="Job" name="Job" value="">
                             <label for="Suffix">Suffix</label>
                             <input type="text" id="Suffix" name="Suffix" value="">
                             <br />
                             <label for="Operation">Operation</label>
                             <input type="text" id="Operation" name="Operation" value="">
                             <br />
-                            <input id="btnUpdateJobInfo" type="button" value="Update Job Info">
+                            <input class="stretch" id="btnUpdateJobInfo" type="button" value="Update Job Info">
                         </form>
                         <span class="Messages" id="JobInfoMessages"></span>
                     </fieldset>
@@ -108,7 +108,7 @@
                         <legend>Scale Settings</legend>
                         <form class="preventsubmit" id="frmUpdateScaleSettings" action="" method="post">
                             <label for="ShopTrakTransactionsURL">Data URL</label>
-                            <input type="text" id="ShopTrakTransactionsURL" name="ShopTrakTransactionsURL" value="">
+                            <input class="stretch" type="text" id="ShopTrakTransactionsURL" name="ShopTrakTransactionsURL" value="">
                             <br />
                             <label for="BacklightColors">Backlight</label>
                             <select id="BacklightColors"></select>
@@ -118,13 +118,32 @@
                             <label for="NetWeightAdjustment">Net Weight Adjustment</label>
                             <input type="text" id="NetWeightAdjustment" name="NetWeightAdjustment" value="">
                             <br />
-                            <input id="btnUpdateScaleSettings" type="button" value="Update Scale Settings">
+                            <input class="stretch" id="btnUpdateScaleSettings" type="button" value="Update Scale Settings">
                         </form>
                         <span class="Messages" id="ScaleSettingsMessages"></span>
                     </fieldset>
                 </div>
+                <div style="width: 500px;" class="float-left">
+                    <fieldset>
+                        <legend>Move Ticket Settings</legend>
+
+                        <label for="Item">Item</label>
+                        <input class="stretch" type="text" id="Item" name="Item" readonly value="">
+
+                        <label for="Employees">Employees</label>
+                        <input class="stretch" type="text" id="Employees" name="Employees" readonly value="">
+
+                        <label for="PieceCount">Piece Count</label>
+                        <input type="text" id="PieceCount" name="PieceCount" readonly value="">
+
+                        <label for="NetWeight">Net Weight</label>
+                        <input type="text" id="NetWeight" name="NetWeight" readonly value="">
+                        <br />
+                        <label for="PrintDateTime">Print DateTime</label>
+                        <input type="text" id="PrintDateTime" name="PrintDateTime" readonly value="">
+                    </fieldset>
+                </div>
             </div>
-            
         </div>
         <footer></footer>
     </div>
@@ -209,12 +228,18 @@
                     });
                     $("#BacklightColors").multiselect({
                         multiple: false,
-                        minWidth: 300,
+                        minWidth: 100,
                         header: false, // "Select a Work Order Type",
                         noneSelectedText: "Select Type",
                         selectedList: 1 //this is what puts the selected value onto the select box...
                     });
+                    $('#BacklightColors .ui-multiselect').css('width', '100px');
 
+                    $("#Item").val(data.Item);
+                    $("#Employees").val(data.Employees);
+                    $("#PieceCount").val(data.PieceCount);
+                    $("#NetWeight").val(data.NetWeight);
+                    $("#PrintDateTime").val(data.PrintDateTime);
                 }).fail(function (XMLHttpRequest, textStatus, errorThrown) {
                     console.log("error thrown when getting settings...");
                     $("#Messages").text(errorThrown).show().fadeOut(intMessageFadeTimeout);

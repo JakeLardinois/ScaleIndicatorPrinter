@@ -63,7 +63,13 @@ namespace ScaleIndicatorPrinter.Controllers
                 PieceWeight = Program.Settings.PieceWeight.ToString("F3"),
                 NetWeightAdjustment = Program.Settings.NetWeightAdjustment.ToString("F3"),
                 BacklightColors = objColors,
-                BacklightColor = Program.Settings.BacklightColorName
+                BacklightColor = Program.Settings.BacklightColorName,
+
+                Item = Program.Settings.Item,
+                Employees = Program.Settings.Employees,
+                PieceCount = Program.Settings.PieceCount.ToString("N"),
+                NetWeight = Program.Settings.NetWeight.ToString("F3"),
+                PrintDateTime = Program.Settings.PrintDateTime.ToString("MM/dd/yy h:mm:ss tt")
             };
 
             SetJsonResult(objFormSettings);

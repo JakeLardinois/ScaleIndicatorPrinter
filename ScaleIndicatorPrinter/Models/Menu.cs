@@ -64,6 +64,12 @@ namespace ScaleIndicatorPrinter.Models
                     lcdBoard.SetPosition(1, 0);
                     lcdBoard.Write("To print a label");
                     break;
+                case MenuSelection.ViewPieceCount:
+                    DataRecieved = RecievedData.ScaleIndicator;
+                    lcdBoard.Write("Press Print...");
+                    lcdBoard.SetPosition(1, 0);
+                    lcdBoard.Write("Pcs:" + objSettings.PieceCount.ToString("N"));
+                    break;
                 case MenuSelection.Job:
                     if (DataRecieved == RecievedData.ScannerJobAndSuffix)
                         lcdBoard.Write("Scan Job #...");

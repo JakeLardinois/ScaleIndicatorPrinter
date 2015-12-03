@@ -25,6 +25,7 @@ namespace ScaleIndicatorPrinter.Models
     public enum MenuSelection
     {
         PrintLabel,
+        ViewPieceCount,
         Job,
         Operation,
         ViewPieceWeight,

@@ -24,5 +24,11 @@ namespace ScaleIndicatorPrinter.Models
         public string NetWeightAdjustment { get; set; }
         public string[] BacklightColors { get; set; }
         public string BacklightColor { get; set; }
+
+        public string Item { get; set; }
+        public string Employees { get; set; }
+        public string PieceCount { get; set; }
+        public string NetWeight { get; set; }
+        public string PrintDateTime { get; set; }
     }
 }
