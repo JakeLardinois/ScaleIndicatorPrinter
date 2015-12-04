@@ -13,6 +13,8 @@
 /Rinsen.WebServer.FileAndDirectoryServer/obj
 /ScaleIndicatorPrinter/bin
 /ScaleIndicatorPrinter/obj
+/SDCard/bin
+/SDCard/obj
 
 # User-specific files
 *.suo

@@ -36,3 +36,7 @@ C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\LE\Jso
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\BE\Json.NetMF.pdbx
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\Json.NetMF.pdb
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\Json.NetMF.xml
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\be\Rinsen.WebServer.pe
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\be\Rinsen.WebServer.pdbx
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\le\Rinsen.WebServer.pe
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\le\Rinsen.WebServer.pdbx
