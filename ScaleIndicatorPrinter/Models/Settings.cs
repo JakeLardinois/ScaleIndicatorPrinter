@@ -180,31 +180,24 @@ namespace ScaleIndicatorPrinter.Models
             mintBacklightColor = --mintBacklightColor % (int)BacklightColor.ColorCount;
         }
 
-        public bool IsDhcpEnabled { get { return mIsDhcpEnabled; } }
-        private bool mIsDhcpEnabled { get; set; }
-        public NetworkInterfaceType NetworkInterfaceType { get { return mNetworkInterfaceType; } }
-        private NetworkInterfaceType mNetworkInterfaceType { get; set; }
-        public string MACAddress { get { return mMACAddress; } }
-        private string mMACAddress { get; set; }
-        public string IPAddress { get { return mIPAddress; } }
-        private string mIPAddress { get; set; }
-        public string NetMask { get { return mNetMask; } }
-        private string mNetMask { get; set; }
-        public string Gateway { get { return mGateway; } }
-        private string mGateway { get; set; }
-        public string[] DnsAddresses { get { return mDnsAddresses; } }
-        private string[] mDnsAddresses { get; set; }
+        public bool IsDhcpEnabled { get; private set; }
+        public NetworkInterfaceType NetworkInterfaceType { get; private set; }
+        public string MACAddress { get; private set; }
+        public string IPAddress { get; private set; }
+        public string NetMask { get; private set; }
+        public string Gateway { get; private set; }
+        public string[] DnsAddresses { get; private set; }
         public void RetrieveNetworkSettings(NetworkInterface objNic)
         {
             //var objNic = Microsoft.SPOT.Net.NetworkInformation.Wireless80211.GetAllNetworkInterfaces()[0];
             //var objNic = Microsoft.SPOT.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()[0];
-            mIsDhcpEnabled = objNic.IsDhcpEnabled;
-            mNetworkInterfaceType = objNic.NetworkInterfaceType;
-            mIPAddress = objNic.IPAddress;
-            mNetMask = objNic.SubnetMask;
-            mMACAddress = objNic.PhysicalAddress.ToHexString();
-            mGateway = objNic.GatewayAddress;
-            mDnsAddresses = objNic.DnsAddresses;
+            IsDhcpEnabled = objNic.IsDhcpEnabled;
+            NetworkInterfaceType = objNic.NetworkInterfaceType;
+            IPAddress = objNic.IPAddress;
+            NetMask = objNic.SubnetMask;
+            MACAddress = objNic.PhysicalAddress.ToHexString();
+            Gateway = objNic.GatewayAddress;
+            DnsAddresses = objNic.DnsAddresses;
 
             Debug.Print("Is DHCP Enabled: " + objNic.IsDhcpEnabled);
             Debug.Print("NIC Type: " + objNic.NetworkInterfaceType.GetName());

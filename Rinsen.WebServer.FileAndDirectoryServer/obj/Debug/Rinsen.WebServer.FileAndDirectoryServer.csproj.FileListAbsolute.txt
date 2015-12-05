@@ -53,3 +53,9 @@ C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectory
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\Json.NetMF.dll
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\Json.NetMF.pdb
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\Json.NetMF.xml
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\LE\SDCard.pe
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\BE\SDCard.pe
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\LE\SDCard.pdbx
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\BE\SDCard.pdbx
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\SDCard.dll
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer.FileAndDirectoryServer\bin\Debug\SDCard.pdb

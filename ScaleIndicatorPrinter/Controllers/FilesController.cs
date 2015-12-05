@@ -5,6 +5,8 @@ using Rinsen.WebServer;
 using ScaleIndicatorPrinter.Models;
 
 
+
+
 namespace ScaleIndicatorPrinter.Controllers
 {
     class FilesController : Controller
@@ -20,9 +22,19 @@ namespace ScaleIndicatorPrinter.Controllers
             if (HttpContext.Request.Method == "POST")
             {
                 Debug.Print("phase II");
-                if (HttpContext.Request.Headers["Content-Type"] == "multipart/form-data")
-                    Debug.Print("Got some form data!");
+                SetFileResult();
+                //if (HttpContext.Request.Headers["Content-Type"] == "multipart/form-data")
+                //{
+                //    Debug.Print("Got some form data!");
+                //    SetFileResult();
+                //}
+                    
+                
             }
         }
+
+        
     }
+
+    
 }

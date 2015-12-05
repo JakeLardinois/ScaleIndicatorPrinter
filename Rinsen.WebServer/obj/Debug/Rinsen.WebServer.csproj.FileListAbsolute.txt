@@ -40,3 +40,9 @@ C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\be\Rin
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\be\Rinsen.WebServer.pdbx
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\le\Rinsen.WebServer.pe
 C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\obj\Debug\le\Rinsen.WebServer.pdbx
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\LE\SDCard.pe
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\BE\SDCard.pe
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\LE\SDCard.pdbx
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\BE\SDCard.pdbx
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\SDCard.dll
+C:\Git\LocalRepositories\ScaleIndicatorPrinter\Rinsen.WebServer\bin\Debug\SDCard.pdb
