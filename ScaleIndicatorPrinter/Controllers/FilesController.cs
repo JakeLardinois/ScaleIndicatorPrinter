@@ -2,6 +2,7 @@ using System;
 using Microsoft.SPOT;
 
 using Rinsen.WebServer;
+using ScaleIndicatorPrinter.Models;
 
 
 namespace ScaleIndicatorPrinter.Controllers
@@ -24,7 +25,6 @@ namespace ScaleIndicatorPrinter.Controllers
                 Debug.Print("Exception caught in FilesController:\r\n" + objEx.Message);
             }
 
-            //SetHtmlResult("<!DOCTYPE html><html><body><h1>Default " + Program.Settings.MACAddress + " CartScale Page...</h1></body></html>");
             SetHtmlResult(strHTML);
         }
 
@@ -34,14 +34,8 @@ namespace ScaleIndicatorPrinter.Controllers
             if (HttpContext.Request.Method == "POST")
             {
                 Debug.Print("phase II");
-                SetFileResult();
-                //if (HttpContext.Request.Headers["Content-Type"] == "multipart/form-data")
-                //{
-                //    Debug.Print("Got some form data!");
-                //    SetFileResult();
-                //}
-                    
-                
+                var doFileUpload = SetFileResult();
+                SetJsonResult(new JsonResult { Success = true, Message = doFileUpload }); ;
             }
         }
 

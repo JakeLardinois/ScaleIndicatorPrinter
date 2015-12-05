@@ -118,7 +118,7 @@ namespace SDCard
             lock (SDCardLock)
             {
                 if (File.Exists(fullPath))
-                    using (StreamReader objStreamReader = new StreamReader(@"\SD\WWW\index.html"))
+                    using (StreamReader objStreamReader = new StreamReader(fullPath))
                         FileContents = objStreamReader.ReadToEnd();
                 else
                     throw new IOException("File Not Found!");

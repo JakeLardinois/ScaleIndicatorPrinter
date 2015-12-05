@@ -122,24 +122,16 @@ namespace Rinsen.WebServer
 	        }
         }
 
-        public void SetFileResult()
+        //public void SetFileResult()
+        //{
+        //    var objSDCard = new SDCard.SDCard();
+        //    DoUploadPage(HttpContext.Request, objSDCard);
+        //}
+
+        public string SetFileResult()
         {
+            var request = HttpContext.Request;
             var objSDCard = new SDCard.SDCard();
-            DoUploadPage(HttpContext.Request, objSDCard);
-        }
-
-        public void DoUploadPage(RequestContext request, SDCard.SDCard sdCard)
-        {
-            string line6 = @"<form method=""POST"" enctype=""multipart/form-data"" action=""/Uploadpage"">
-                <input type=submit value=Press> to upload the file!<br>
-                path: <input type=""text"" name=""path""><br>
-                File to upload: <input type=""file"" name=""upfile""><br>
-                <br>
-
-                </form>";
-
-            string line7 = "";
-            string line8 = "";
             Hashtable formVariables = new Hashtable();
             if (request.RequestType == EnumRequestType.Post)
             {
@@ -195,7 +187,7 @@ namespace Rinsen.WebServer
                                     formVariables.Add("fileName", fileNameSplit[1]);
                                     fileName = fileNameSplit[1];
                                     string fileDataPart1 = nameSplit[1].Substring(fileDataSeparatorIndex + 4);
-                                    sdCard.Write(fileDirectoryPath, fileName, System.IO.FileMode.Create, fileDataPart1);
+                                    objSDCard.Write(fileDirectoryPath, fileName, System.IO.FileMode.Create, fileDataPart1);
                                 }
                             }
                             else
@@ -231,12 +223,12 @@ namespace Rinsen.WebServer
                         int boundaryPosition = requestContent.IndexOf(boundaryPattern);
                         if (boundaryPosition < 0)
                         {// no boundary so write all the bytes
-                            sdCard.Write(fileDirectoryPath, fileName, System.IO.FileMode.Append, data, count);
+                            objSDCard.Write(fileDirectoryPath, fileName, System.IO.FileMode.Append, data, count);
                         }
                         else
                         {//  boundary so write some of the bytes via a string
                             string fileContent = requestContent.Substring(0, boundaryPosition);
-                            sdCard.Write(fileDirectoryPath, fileName, System.IO.FileMode.Append, fileContent);
+                            objSDCard.Write(fileDirectoryPath, fileName, System.IO.FileMode.Append, fileContent);
                         }
                         // todo other params following
 
@@ -244,15 +236,13 @@ namespace Rinsen.WebServer
                 }
 
             }
+            string message = string.Empty;
             foreach (string key in formVariables.Keys)
             {
-                line7 += "<p>" + key + ": " + formVariables[key].ToString() + "</p>";
+                message += "<p>" + key + ": " + formVariables[key].ToString() + "</p>";
             }
 
-            string content = HtmlGeneral.HtmlStart + line6 + line7 + line8 + HtmlGeneral.HtmlEnd;
-
-            HttpContext.Response.ContentType = "text/html";
-            HttpContext.Response.Data = content;
+            return message;
         }
 
         const int _PostRxBufferSize = 1500;
@@ -263,21 +253,5 @@ namespace Rinsen.WebServer
             count = connectionSocket.Receive(result, result.Length, socketFlags);
             return result;
         }
-    }
-
-    public class HtmlGeneral
-    {// todo change to html 5
-        public static string HtmlStart = @"<!DOCTYPE html>
-            <html xmlns='http://www.w3.org/1999/xhtml'>
-            <head>
-                <title>House Thermometer</title>
-                <link rel=""stylesheet"" type=""text/css"" href=""/Style/style.css"" />
-            </head>
-            <body>
-            ";
-
-        public static string HtmlEnd = @"</body></html>";
-
-
     }
 }

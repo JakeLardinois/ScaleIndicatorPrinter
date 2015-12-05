@@ -1,31 +1,52 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<html>
 <head>
     <meta charset="utf-8" />
-    <title></title>
+    <title>Cart Scale File Manager</title>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/overcast/jquery-ui.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/jquery.multiselect/1.13/jquery.multiselect.css">
+    <link rel="stylesheet" href="/style/style.css" />
+    <style>
+
+    </style>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script> 
 </head>
 <body>
     <div id="container">
         <header>
             <nav>
+                <ul class="menu">
+                    <li class="menuitem">
+                        <a href="/">Home</a>
+                    </li>
+                </ul>
             </nav>
         </header>
-        <div id="content">
-            <form method="post" enctype="multipart/form-data" action="Files/Upload">
-                <input type=submit value=Press> to upload the file!
-                <br>
-                path:
-                <input type="text" name="path">
-                <br>
-                File to upload:
-                <input type="file" name="upfile">
-                <br>
-                <br>
-            </form>
+        <div class="clear-fix" id="content">
+            <div><span class="Messages" id="Messages"></span></div>
+            <div style="width: 500px;" class="float-left">
+                <fieldset>
+                    <legend>Network Information</legend>
+                    <form class="preventsubmit" id="frmFileUpload" method="post" action="">
+                        <label for="path">Remote Path</label>
+                        <input type="text" name="path" id="path">
+                        <br />
+                        <label for="upfile">Remote Path</label>
+                        <input type="file" name="upfile" id="upfile">
+                        <br />
+                        <input class="stretch" type="button" name="btnUpload" id="btnUpload" value="Upload File">
+                        <br>
+                    </form>
+                    <span class="Messages" id="FileUploadMessages"></span>
+                </fieldset>
+            </div>
         </div>
         <footer></footer>
     </div>
+    <script type="text/javascript" src="js/filemanager.js">
     <script>
 
     </script>
