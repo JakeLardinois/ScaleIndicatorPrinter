@@ -2,8 +2,6 @@ using System;
 using Microsoft.SPOT;
 
 using Rinsen.WebServer;
-using System.IO;
-using NetMf.CommonExtensions;
 using ScaleIndicatorPrinter.Models;
 
 
@@ -13,13 +11,13 @@ namespace ScaleIndicatorPrinter.Controllers
     {
         public void Index()
         {
+            var SDCard = new SDCard.SDCard();
             string strHTML = string.Empty;
 
 
             try
             {
-                using (StreamReader objStreamReader = new StreamReader(@"\SD\WWW\index.html"))
-                    strHTML = objStreamReader.ReadToEnd();
+                strHTML = SDCard.ReadTextFile(@"\SD\WWW\index.html");
                 strHTML = strHTML.Substring(1, strHTML.Length - 2); //If I don't remove the first character then the page doesn't get rendered as html...
             }
             catch(Exception objEx)

@@ -78,10 +78,6 @@
     <Compile Include="Uri.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Json.NetMF, Version=1.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Json.NetMF.1.3.0.0\lib\netmf43\Json.NetMF.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Microsoft.SPOT.Native">
     </Reference>
     <Reference Include="Microsoft.SPOT.Net" />
@@ -91,6 +87,10 @@
     <Reference Include="System.Text.RegularExpressions" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Json.NetMF\Json.NetMF.csproj">
+      <Project>{5995FC6C-A484-4A48-A75B-00B35F08F092}</Project>
+      <Name>Json.NetMF</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SDCard\SDCard.csproj">
       <Project>{0BEA7B28-F1A7-48BB-B04C-1C3FB3A45164}</Project>
       <Name>SDCard</Name>
