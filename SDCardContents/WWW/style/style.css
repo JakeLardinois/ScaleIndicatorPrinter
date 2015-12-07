@@ -50,3 +50,7 @@ span.Messages {
 input.stretch {
     width: 100%;
 }
+
+input.stretch3Quarters {
+    width: 75%;
+}

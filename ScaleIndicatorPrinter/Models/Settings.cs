@@ -12,27 +12,25 @@ namespace ScaleIndicatorPrinter.Models
 {
     public class Settings
     {
-        private string mRootDirectoryPath { get; set; }
-        private DirectoryInfo mRootDirectory { get; set; }
+        private SDCard.SDCard mSDCard { get; set; }
 
-        private string mLabelFormatFileName { get; set; }
+        public string LabelFormatFileName { get; private set; }
         public string LabelFormat { get; set; }
         public void StoreLabelFormat()
         {
-            string strFilePathAndName = mRootDirectory.FullName + "\\" + mLabelFormatFileName;
-            using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
-                objStreamWriter.WriteLine(LabelFormat);
-            Debug.Print("Wrote Contents: " + LabelFormat + "\r\nTo File: " + strFilePathAndName);
+            /*I may have an issue here when the label format saved is smaller than the previous label format. NETMF does not truncate a file when writing contents
+             * I tried opening the file with FileMode.Truncate and also tried using the objFileStream.SetLength(0) method. According to the documentation, file truncation is
+             * supposed to occur by default when using FileMode.Create...*/
+            mSDCard.Write(mSDCard.GetWorkingDirectoryPath(), LabelFormatFileName, FileMode.Create, LabelFormat);
+            Debug.Print("Wrote Contents: " + LabelFormat + "\r\nTo File: " + mSDCard.GetWorkingDirectoryPath() + LabelFormatFileName);
         }
 
-        private string mJobNumberFileName { get; set; }
+        public string JobNumberFileName { get; private set; }
         public string JobNumber { get; set; }
         public void StoreJobNumber()
         {
-            string strFilePathAndName = mRootDirectory.FullName + "\\" + mJobNumberFileName;
-            using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
-                objStreamWriter.WriteLine(JobNumber);
-            Debug.Print("Wrote Contents: " + Job + "\r\nTo File: " + strFilePathAndName);
+            mSDCard.WriteLine(mSDCard.GetWorkingDirectoryPath(), JobNumberFileName, FileMode.Create, JobNumber);
+            Debug.Print("Wrote Contents: " + Job + "\r\nTo File: " + mSDCard.GetWorkingDirectoryPath() + JobNumberFileName);
         }
         public string Job { 
             get {
@@ -60,14 +58,12 @@ namespace ScaleIndicatorPrinter.Models
             } 
         }
 
-        private string mOperationFileName { get; set; }
+        public string OperationFileName { get; private set; }
         public string Operation { get; set; }
         public void StoreOperationNumber()
         {
-            string strFilePathAndName = mRootDirectory.FullName + "\\" + mOperationFileName;
-            using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
-                objStreamWriter.WriteLine(Operation);
-            Debug.Print("Wrote Contents: " + Operation + "\r\nTo File: " + strFilePathAndName);
+            mSDCard.WriteLine(mSDCard.GetWorkingDirectoryPath(), OperationFileName, FileMode.Create, Operation);
+            Debug.Print("Wrote Contents: " + Operation + "\r\nTo File: " + mSDCard.GetWorkingDirectoryPath() + OperationFileName);
         }
         public int OperationNumber
         {
@@ -85,14 +81,12 @@ namespace ScaleIndicatorPrinter.Models
             }
         }
 
-        private string mShopTrakTransactionsURLFileName { get; set; }
+        public string ShopTrakTransactionsURLFileName { get; private set; }
         public string ShopTrakTransactionsURL { get; set; }
         public void StoreShopTrakTransactionsURL()
         {
-            string strFilePathAndName = mRootDirectory.FullName + "\\" + mShopTrakTransactionsURLFileName;
-            using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
-                objStreamWriter.WriteLine(ShopTrakTransactionsURL);
-            Debug.Print("Wrote Contents: " + ShopTrakTransactionsURL + "\r\nTo File: " + strFilePathAndName);
+            mSDCard.WriteLine(mSDCard.GetWorkingDirectoryPath(), ShopTrakTransactionsURLFileName, FileMode.Create, ShopTrakTransactionsURL);
+            Debug.Print("Wrote Contents: " + ShopTrakTransactionsURL + "\r\nTo File: " + mSDCard.GetWorkingDirectoryPath() + ShopTrakTransactionsURLFileName);
         }
 
         public double[] Increments { get; set; }
@@ -110,7 +104,7 @@ namespace ScaleIndicatorPrinter.Models
             }
         }
 
-        private string mPieceWeightFileName { get; set; }
+        public string PieceWeightFileName { get; private set; }
         private double mdblPieceWeight { get; set; }
         public double PieceWeight { 
             get { return mdblPieceWeight; } 
@@ -118,10 +112,8 @@ namespace ScaleIndicatorPrinter.Models
         }
         public void StorePieceWeight()
         {
-            string strFilePathAndName = mRootDirectory.FullName + "\\" + mPieceWeightFileName;
-            using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
-                objStreamWriter.WriteLine(PieceWeight);
-            Debug.Print("Wrote Contents: " + PieceWeight + "\r\nTo File: " + strFilePathAndName);
+            mSDCard.WriteLine(mSDCard.GetWorkingDirectoryPath(), PieceWeightFileName, FileMode.Create, PieceWeight.ToString("F3"));
+            Debug.Print("Wrote Contents: " + PieceWeight.ToString("F3") + "\r\nTo File: " + mSDCard.GetWorkingDirectoryPath() + PieceWeightFileName);
         }
         public void IncrementPieceWeight()
         {
@@ -134,14 +126,12 @@ namespace ScaleIndicatorPrinter.Models
             Debug.Print("PieceWeight Decremented to: " + PieceWeight);
         }
 
-        private string mNetWeightAdjustmentFileName { get; set; }
+        public string NetWeightAdjustmentFileName { get; private set; }
         public double NetWeightAdjustment{ get; set; }
         public void StoreNetWeightAdjustment()
         {
-            string strFilePathAndName = mRootDirectory.FullName + "\\" + mNetWeightAdjustmentFileName;
-            using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
-                objStreamWriter.WriteLine(NetWeightAdjustment);
-            Debug.Print("Wrote Contents: " + NetWeightAdjustment + "\r\nTo File: " + strFilePathAndName);
+            mSDCard.WriteLine(mSDCard.GetWorkingDirectoryPath(), NetWeightAdjustmentFileName, FileMode.Create, NetWeightAdjustment.ToString("F3"));
+            Debug.Print("Wrote Contents: " + NetWeightAdjustment + "\r\nTo File: " + mSDCard.GetWorkingDirectoryPath() + NetWeightAdjustmentFileName);
         }
         public void IncrementNetWeightAdjustment()
         {
@@ -154,7 +144,7 @@ namespace ScaleIndicatorPrinter.Models
              Debug.Print("NetWeightAdjustment Decremented to: " + NetWeightAdjustment);
         }
 
-        private string mBacklightColorFileName { get; set; }
+        public string BacklightColorFileName { get; private set; }
         private int mintBacklightColor { get; set; }
         public BacklightColor BacklightColor
         {
@@ -164,10 +154,8 @@ namespace ScaleIndicatorPrinter.Models
         public string BacklightColorName { get { return BacklightColor.GetName(); } }
         public void StoreBacklightColor()
         {
-            string strFilePathAndName = mRootDirectory.FullName + "\\" + mBacklightColorFileName;
-            using (StreamWriter objStreamWriter = new StreamWriter(strFilePathAndName))
-                objStreamWriter.WriteLine(BacklightColor);
-            Debug.Print("Wrote Contents: " + BacklightColor + "\r\nTo File: " + strFilePathAndName);
+            mSDCard.WriteLine(mSDCard.GetWorkingDirectoryPath(), BacklightColorFileName, FileMode.Create, BacklightColor.ToString());
+            Debug.Print("Wrote Contents: " + BacklightColor + "\r\nTo File: " + mSDCard.GetWorkingDirectoryPath() + BacklightColorFileName);
         }
         public void NextBacklightColor()
         {
@@ -215,185 +203,152 @@ namespace ScaleIndicatorPrinter.Models
         public double NetWeight { get; set; }
         public DateTime PrintDateTime { get; set; }
 
-        public void RetrieveSettingsFromSDCard(string RootDirectoryPath, string LabelFormatFileName, string JobNumberFileName, string OperationFileName,
-            string ShopTrakTransactionsURLFileName, string PieceWeightFileName, string NetWeightAdjustmentFileName, string BackgroundColorFileName)
+        public void RetrieveSettingsFromSDCard(string DirectoryPath, string labelformatfilename, string jobnumberfilename, string operationfilename,
+            string shoptraktransactionsurlfilename, string pieceweightfilename, string netweightadjustmentfilename, string backlightcolorfilename)
         {
-            mRootDirectoryPath = RootDirectoryPath;
-            mRootDirectory = new System.IO.DirectoryInfo(mRootDirectoryPath);
-            if (!mRootDirectory.Exists)
-            {
-                Debug.Print(mRootDirectory.FullName + " is not a Valid Directory!!");
-                Debug.Print("Creating " + mRootDirectoryPath + "...");
-                Directory.CreateDirectory(mRootDirectoryPath);
-            }
+            mSDCard = new SDCard.SDCard();
+            mSDCard.WorkingDirectoryInfo = new System.IO.DirectoryInfo(DirectoryPath);
 
-
-            mLabelFormatFileName = LabelFormatFileName;
-            if (File.Exists(mRootDirectory.FullName + "\\" + mLabelFormatFileName))
-                RetrieveInformationFromFile(mLabelFormatFileName, InformationType.LabelFormat);
+            LabelFormatFileName = labelformatfilename;
+            if (File.Exists(mSDCard.GetWorkingDirectoryPath() + LabelFormatFileName))
+                RetrieveInformationFromFile(LabelFormatFileName, InformationType.LabelFormat);
             else
-                CreateInformationFile(mLabelFormatFileName, InformationType.LabelFormat);
+                CreateInformationFile(LabelFormatFileName, InformationType.LabelFormat);
 
-            mJobNumberFileName = JobNumberFileName;
-            if (File.Exists(mRootDirectory.FullName + "\\" + mJobNumberFileName))
+            JobNumberFileName = jobnumberfilename;
+            if (File.Exists(mSDCard.GetWorkingDirectoryPath() + JobNumberFileName))
                 RetrieveInformationFromFile(JobNumberFileName, InformationType.JobNumber);
             else
-                CreateInformationFile(mJobNumberFileName, InformationType.JobNumber);
+                CreateInformationFile(JobNumberFileName, InformationType.JobNumber);
 
-            mOperationFileName = OperationFileName;
-            if (File.Exists(mRootDirectory.FullName + "\\" + mOperationFileName))
-                RetrieveInformationFromFile(mOperationFileName, InformationType.OperationNumber);
+            OperationFileName = operationfilename;
+            if (File.Exists(mSDCard.GetWorkingDirectoryPath() + OperationFileName))
+                RetrieveInformationFromFile(OperationFileName, InformationType.OperationNumber);
             else
-                CreateInformationFile(mOperationFileName, InformationType.OperationNumber);
+                CreateInformationFile(OperationFileName, InformationType.OperationNumber);
 
-            mShopTrakTransactionsURLFileName = ShopTrakTransactionsURLFileName;
-            if (File.Exists(mRootDirectory.FullName + "\\" + mShopTrakTransactionsURLFileName))
-                RetrieveInformationFromFile(mShopTrakTransactionsURLFileName, InformationType.ShopTrakTransactionsURL);
+            ShopTrakTransactionsURLFileName = shoptraktransactionsurlfilename;
+            if (File.Exists(mSDCard.GetWorkingDirectoryPath() + ShopTrakTransactionsURLFileName))
+                RetrieveInformationFromFile(ShopTrakTransactionsURLFileName, InformationType.ShopTrakTransactionsURL);
             else
-                CreateInformationFile(mShopTrakTransactionsURLFileName, InformationType.ShopTrakTransactionsURL);
+                CreateInformationFile(ShopTrakTransactionsURLFileName, InformationType.ShopTrakTransactionsURL);
 
-            mPieceWeightFileName = PieceWeightFileName;
-            if (File.Exists(mRootDirectory.FullName + "\\" + mPieceWeightFileName))
-                RetrieveInformationFromFile(mPieceWeightFileName, InformationType.PieceWeight);
+            PieceWeightFileName = pieceweightfilename;
+            if (File.Exists(mSDCard.GetWorkingDirectoryPath() + PieceWeightFileName))
+                RetrieveInformationFromFile(PieceWeightFileName, InformationType.PieceWeight);
             else
-                CreateInformationFile(mPieceWeightFileName, InformationType.PieceWeight);
+                CreateInformationFile(PieceWeightFileName, InformationType.PieceWeight);
 
-            mNetWeightAdjustmentFileName = NetWeightAdjustmentFileName;
-            if (File.Exists(mRootDirectory.FullName + "\\" + mNetWeightAdjustmentFileName))
-                RetrieveInformationFromFile(mNetWeightAdjustmentFileName, InformationType.NetWeightAdjustment);
+            NetWeightAdjustmentFileName = netweightadjustmentfilename;
+            if (File.Exists(mSDCard.GetWorkingDirectoryPath() + NetWeightAdjustmentFileName))
+                RetrieveInformationFromFile(NetWeightAdjustmentFileName, InformationType.NetWeightAdjustment);
             else
-                CreateInformationFile(mNetWeightAdjustmentFileName, InformationType.NetWeightAdjustment);
+                CreateInformationFile(NetWeightAdjustmentFileName, InformationType.NetWeightAdjustment);
 
-            mBacklightColorFileName = BackgroundColorFileName;
-            if (File.Exists(mRootDirectory.FullName + "\\" + mBacklightColorFileName))
-                RetrieveInformationFromFile(mBacklightColorFileName, InformationType.ColorName);
+            BacklightColorFileName = backlightcolorfilename;
+            if (File.Exists(mSDCard.GetWorkingDirectoryPath() + BacklightColorFileName))
+                RetrieveInformationFromFile(BacklightColorFileName, InformationType.ColorName);
             else
-                CreateInformationFile(mBacklightColorFileName, InformationType.ColorName);
+                CreateInformationFile(BacklightColorFileName, InformationType.ColorName);
         }
 
         private void RetrieveInformationFromFile(string FileName, InformationType Information)
         {
             double dblTemp;
-            string FilePathAndName = mRootDirectory.FullName + "\\" + FileName;
+            string FilePathAndName = mSDCard.GetWorkingDirectoryPath() + FileName;
 
             
             Debug.Print("Reading file: " + FilePathAndName);
             try
-                {
-                    using (StreamReader objStreamReader = new StreamReader(FilePathAndName))
-                        switch (Information)
-                        {
-                            case InformationType.LabelFormat:
-                                LabelFormat = objStreamReader.ReadToEnd();
-                                Debug.Print("LabelFormat Read from SD Card:\r\n" + LabelFormat);
-                                break;
-                            case InformationType.JobNumber:
-                                JobNumber = objStreamReader.ReadLine().Trim();
-                                Debug.Print("JobNumber Read from SD Card:\r\n" + JobNumber);
-                                break;
-                            case InformationType.OperationNumber:
-                                Operation = objStreamReader.ReadLine().Trim();
-                                Debug.Print("Operation Read from SD Card:\r\n" + Operation);
-                                break;
-                            case InformationType.ShopTrakTransactionsURL:
-                                ShopTrakTransactionsURL = objStreamReader.ReadLine().Trim();
-                                Debug.Print("ShopTrakTransactionsURL Read from SD Card:\r\n" + ShopTrakTransactionsURL);
-                                break;
-                            case InformationType.PieceWeight:
-                                var strPieceWeight = objStreamReader.ReadLine().Trim();
-                                PieceWeight = double.TryParse(strPieceWeight, out dblTemp) ? dblTemp : 0.0;
-                                Debug.Print("PieceWeight Read from SD Card:\r\n" + PieceWeight);
-                                break;
-                            case InformationType.NetWeightAdjustment:
-                                var strNetWeightAdjustment = objStreamReader.ReadLine().Trim();
-                                NetWeightAdjustment = double.TryParse(strNetWeightAdjustment, out dblTemp) ? dblTemp : 0.0;
-                                Debug.Print("NetWeightAdjustment Read from SD Card:\r\n" + NetWeightAdjustment);
-                                break;
-                            case InformationType.ColorName:
-                                var strBackgroundColor = objStreamReader.ReadLine().Trim();
-                                BacklightColor = double.TryParse(strBackgroundColor, out dblTemp) ? (BacklightColor)dblTemp : (BacklightColor)0;
-                                Debug.Print("BackgroundColor Read from SD Card:\r\n" + BacklightColor);
-                                break;
-                        }
-                }
-                catch (NullReferenceException)
-                {
-                    Debug.Print("Invalid (Null) File Contents.  Deleting File...");
-                    File.Delete(FilePathAndName);
-                    Debug.Print("Deleted File: " + FilePathAndName);
-                    CreateInformationFile(FileName, Information);
-                }
-                
-                
-        }
-
-        private void CreateInformationFile(string FileName, InformationType Information)
-        {
-            string FilePathAndName = mRootDirectory.FullName + "\\" + FileName;
-            string strContents = string.Empty;
-            double dblContents = 0.0;
-            BacklightColor enumBacklightColor = BacklightColor.White;
-
-
-            Debug.Print("Creating  " + FilePathAndName + "...");
-            using (var objFileStream = new FileStream(FilePathAndName, FileMode.Create))
-            using (var objStreamWriter = new StreamWriter(objFileStream))
             {
                 switch (Information)
                 {
                     case InformationType.LabelFormat:
-                        strContents = Label.DefaultLabel;
-                        objStreamWriter.WriteLine(strContents);
-                        objStreamWriter.WriteLine();
-                        LabelFormat = strContents;
-                        Debug.Print("Wrote contents: \r\n" + strContents + "\r\nTo File: " + FilePathAndName);
+                        LabelFormat = mSDCard.ReadTextFile(FilePathAndName);
+                        Debug.Print("LabelFormat Read from SD Card:\r\n" + LabelFormat);
                         break;
                     case InformationType.JobNumber:
-                        strContents = "B00123-000";
-                        objStreamWriter.WriteLine(strContents);
-                        objStreamWriter.WriteLine();
-                        JobNumber = strContents;
-                        Debug.Print("Wrote contents: \r\n" + strContents + "\r\nTo File: " + FilePathAndName);
+                        JobNumber = mSDCard.ReadLine(FilePathAndName);
+                        Debug.Print("JobNumber Read from SD Card:\r\n" + JobNumber);
                         break;
                     case InformationType.OperationNumber:
-                        strContents = "10";
-                        objStreamWriter.WriteLine(strContents);
-                        objStreamWriter.WriteLine();
-                        Operation = strContents;
-                        Debug.Print("Wrote contents: \r\n" + strContents + "\r\nTo File: " + FilePathAndName);
+                        Operation = mSDCard.ReadLine(FilePathAndName);
+                        Debug.Print("Operation Read from SD Card:\r\n" + Operation);
                         break;
                     case InformationType.ShopTrakTransactionsURL:
-                        strContents = "http://dataservice.wiretechfab.com:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=~p0&Suffix=~p1&Operation=~p2";
-                        objStreamWriter.WriteLine(strContents);
-                        objStreamWriter.WriteLine();
-                        ShopTrakTransactionsURL = strContents;
-                        Debug.Print("Wrote contents: \r\n" + strContents + "\r\nTo File: " + FilePathAndName);
+                        ShopTrakTransactionsURL = mSDCard.ReadLine(FilePathAndName);
+                        Debug.Print("ShopTrakTransactionsURL Read from SD Card:\r\n" + ShopTrakTransactionsURL);
                         break;
                     case InformationType.PieceWeight:
-                        dblContents = 0.0000001;
-                        objStreamWriter.WriteLine(strContents);
-                        objStreamWriter.WriteLine();
-                        PieceWeight = dblContents;
-                        Debug.Print("Wrote contents: \r\n" + dblContents + "\r\nTo File: " + FilePathAndName);
+                        var strPieceWeight = mSDCard.ReadLine(FilePathAndName);
+                        PieceWeight = double.TryParse(strPieceWeight, out dblTemp) ? dblTemp : 0.0;
+                        Debug.Print("PieceWeight Read from SD Card:\r\n" + PieceWeight);
                         break;
                     case InformationType.NetWeightAdjustment:
-                        dblContents = 0.0;
-                        objStreamWriter.WriteLine(strContents);
-                        objStreamWriter.WriteLine();
-                        NetWeightAdjustment = dblContents;
-                        Debug.Print("Wrote contents: \r\n" + dblContents + "\r\nTo File: " + FilePathAndName);
+                        var strNetWeightAdjustment = mSDCard.ReadLine(FilePathAndName);
+                        NetWeightAdjustment = double.TryParse(strNetWeightAdjustment, out dblTemp) ? dblTemp : 0.0;
+                        Debug.Print("NetWeightAdjustment Read from SD Card:\r\n" + NetWeightAdjustment);
                         break;
                     case InformationType.ColorName:
-                        enumBacklightColor = BacklightColor.White;
-                        objStreamWriter.WriteLine(enumBacklightColor);
-                        objStreamWriter.WriteLine();
-                        BacklightColor = enumBacklightColor;
-                        Debug.Print("Wrote contents: \r\n" + enumBacklightColor + " (" + enumBacklightColor.GetName() + ")\r\nTo File: " + FilePathAndName);
+                        var strBackgroundColor = mSDCard.ReadLine(FilePathAndName);
+                        BacklightColor = double.TryParse(strBackgroundColor, out dblTemp) ? (BacklightColor)dblTemp : (BacklightColor)0;
+                        Debug.Print("BackgroundColor Read from SD Card:\r\n" + BacklightColor);
                         break;
                 }
-                Debug.Print("Finished Write...");
             }
-            
+            catch (NullReferenceException)
+            {
+                Debug.Print("Invalid (Null) File Contents.  Deleting File...");
+                File.Delete(FilePathAndName);
+                Debug.Print("Deleted File: " + FilePathAndName);
+                CreateInformationFile(FileName, Information);
+            }
+        }
+
+        private void CreateInformationFile(string FileName, InformationType Information)
+        {
+            var FileContents = string.Empty;
+            var FilePathAndName = mSDCard.GetWorkingDirectoryPath() + FileName;
+
+
+            Debug.Print("Creating  " + mSDCard.GetWorkingDirectoryPath() + FileName + "...");
+            switch (Information)
+            {
+                case InformationType.LabelFormat:
+                    FileContents = Label.DefaultLabel;
+                    LabelFormat = Label.DefaultLabel;
+                    break;
+                case InformationType.JobNumber:
+                    FileContents = "B000000123-000";
+                    JobNumber = FileContents;
+                    break;
+                case InformationType.OperationNumber:
+                    FileContents = "10";
+                    Operation = FileContents;
+                    break;
+                case InformationType.ShopTrakTransactionsURL:
+                    FileContents = "http://dataservice.wiretechfab.com:6156/SytelineDataService/ShopTrak/LCLTTransaction/Job=~p0&Suffix=~p1&Operation=~p2";
+                    ShopTrakTransactionsURL = FileContents;
+                    break;
+                case InformationType.PieceWeight:
+                    var dblPieceWeight = 0.0000001;
+                    PieceWeight = dblPieceWeight;
+                    FileContents = dblPieceWeight.ToString();
+                    break;
+                case InformationType.NetWeightAdjustment:
+                    var dblNetWeightAdjustment = 0.0;
+                    NetWeightAdjustment = dblNetWeightAdjustment;
+                    FileContents = dblNetWeightAdjustment.ToString();
+                    break;
+                case InformationType.ColorName:
+                    var enumBacklightColor = BacklightColor.White;
+                    BacklightColor = enumBacklightColor;
+                    FileContents = enumBacklightColor.ToString();
+                    break;
+            }
+            mSDCard.WriteLine(mSDCard.GetWorkingDirectoryPath(), FileName, FileMode.Create, FileContents);
+            Debug.Print("Wrote contents: \r\n" + FileContents + "\r\nTo File: " + FilePathAndName);
+            Debug.Print("Finished Write...");
         }
     }
 }

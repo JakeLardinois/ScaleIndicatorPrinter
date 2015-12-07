@@ -122,12 +122,6 @@ namespace Rinsen.WebServer
 	        }
         }
 
-        //public void SetFileResult()
-        //{
-        //    var objSDCard = new SDCard.SDCard();
-        //    DoUploadPage(HttpContext.Request, objSDCard);
-        //}
-
         public string SetFileResult()
         {
             var request = HttpContext.Request;
@@ -151,12 +145,6 @@ namespace Rinsen.WebServer
                         byte[] data = GetMoreBytes(HttpContext.Socket, out count);
                         requestContent += new string(Encoding.UTF8.GetChars(data, contentLengthReceived, count));
                         contentLengthReceived += count;
-                        //                    System.Text.Encoding enc = System.Text.Encoding.ASCII;
-                        //                    string myString = enc.GetString(myByteArray);
-                        //                    requestContent += Convert.FromBase64CharArray(data, 0, data.Length);//todo if base64 encoded
-                        
-                        
-
                     }
 
                     string strTemp = request.Headers["Content-Type"].Split(new char[] {';'})[1].Split(new char[] {'='})[1].ToString();
@@ -238,9 +226,7 @@ namespace Rinsen.WebServer
             }
             string message = string.Empty;
             foreach (string key in formVariables.Keys)
-            {
                 message += "<p>" + key + ": " + formVariables[key].ToString() + "</p>";
-            }
 
             return message;
         }

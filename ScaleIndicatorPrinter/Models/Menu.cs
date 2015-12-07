@@ -18,8 +18,8 @@ namespace ScaleIndicatorPrinter.Models
         public RecievedData DataRecieved { get; set; }
 
         private int intMenuSelection { get; set; }
-        private int AvailableMenuCount { get { return 8; } } //this represents 8 available menus. Note that the MenuSelection enumeration has 12 available values but I only want to be able to cycle 
-        public MenuSelection MenuSelection                  //through 8 of them since the other 3 AdjustPieceWeight, AdjustNetWeight & ChangeColor are set via the 'Select' Button.
+        private int AvailableMenuCount { get { return 9; } } //this represents 9 available menus. Note that the MenuSelection enumeration has 14 available values but I only want to be able to cycle 
+        public MenuSelection MenuSelection                  //through 9 of them since the other 5 AdjustPieceWeight, AdjustNetWeight & ChangeColor are set via the 'Select' Button.
         {
             get
             {
@@ -96,7 +96,7 @@ namespace ScaleIndicatorPrinter.Models
                     lcdBoard.SetPosition(1, 0);
                     lcdBoard.Write(objSettings.NetWeightAdjustment.ToString("F3"));
                     break;
-                case MenuSelection.ViewBackgroundColor:
+                case MenuSelection.ViewBackLightColor:
                     lcdBoard.Write("Background Color:");
                     lcdBoard.SetPosition(1, 0);
                     lcdBoard.Write(objSettings.BacklightColorName);
@@ -119,7 +119,7 @@ namespace ScaleIndicatorPrinter.Models
                     lcdBoard.SetPosition(1, 0);
                     lcdBoard.Write(objSettings.NetWeightAdjustment.ToString("F3"));
                     break;
-                case MenuSelection.ChangeBackgroundColor:
+                case MenuSelection.ChangeBackLightColor:
                     lcdBoard.Write("Change Color...");
                     lcdBoard.SetPosition(1, 0);
                     lcdBoard.Write(objSettings.BacklightColorName);

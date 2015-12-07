@@ -61,7 +61,7 @@ namespace ScaleIndicatorPrinter
                 Settings = new Settings();
                 Settings.Increments = new double[] { .001, .01, .1, 1, 10, 100 };
                 Settings.IncrementSelection = 3;
-                Settings.RetrieveSettingsFromSDCard(@"\SD\WWW\", "LabelFormat.txt", "Job.txt", "Operation.txt", "ShopTrakTransactionsURL.txt",
+                Settings.RetrieveSettingsFromSDCard(@"\WWW\", "LabelFormat.txt", "Job.txt", "Operation.txt", "ShopTrakTransactionsURL.txt",
                     "PieceWeight.txt", "NetWeightAdjustment.txt", "BackgroundColor.txt");
 
                 mMenu.SetBackLightColor(Settings.BacklightColor);
@@ -138,7 +138,7 @@ namespace ScaleIndicatorPrinter
                     case NetduinoRGBLCDShield.Button.Left:
                         if ((mMenu.MenuSelection == MenuSelection.AdjustPieceWeight) || (mMenu.MenuSelection == MenuSelection.AdjustNetWeight))
                             ++Settings.IncrementSelection;
-                        else if (mMenu.MenuSelection == MenuSelection.ChangeBackgroundColor)
+                        else if (mMenu.MenuSelection == MenuSelection.ChangeBackLightColor)
                         {
                             Settings.NextBacklightColor();
                             mMenu.SetBackLightColor(Settings.BacklightColor);
@@ -153,7 +153,7 @@ namespace ScaleIndicatorPrinter
                     case NetduinoRGBLCDShield.Button.Right:
                         if ((mMenu.MenuSelection == MenuSelection.AdjustPieceWeight) || (mMenu.MenuSelection == MenuSelection.AdjustNetWeight))
                             --Settings.IncrementSelection;
-                        else if (mMenu.MenuSelection == MenuSelection.ChangeBackgroundColor)
+                        else if (mMenu.MenuSelection == MenuSelection.ChangeBackLightColor)
                         {
                             Settings.PreviousBacklightColor();
                             mMenu.SetBackLightColor(Settings.BacklightColor);
@@ -192,11 +192,11 @@ namespace ScaleIndicatorPrinter
                             mMenu.MenuSelection = MenuSelection.ViewNetWeightAdjustment;
                             mMenu.DisplayInformation(Settings);
                         }
-                        else if (mMenu.MenuSelection == MenuSelection.ChangeBackgroundColor)
+                        else if (mMenu.MenuSelection == MenuSelection.ChangeBackLightColor)
                         {
                             Settings.StoreBacklightColor();
                             mMenu.SetBackLightColor(Settings.BacklightColor);
-                            mMenu.MenuSelection = MenuSelection.ViewBackgroundColor;
+                            mMenu.MenuSelection = MenuSelection.ViewBackLightColor;
                             mMenu.DisplayInformation(Settings);
                         }
                         else
@@ -275,10 +275,10 @@ namespace ScaleIndicatorPrinter
                     Debug.Print("Set Menu to Adjust Net Weight...");
                     mMenu.MenuSelection = MenuSelection.AdjustNetWeight;
                     break;
-                case MenuSelection.ViewBackgroundColor:
+                case MenuSelection.ViewBackLightColor:
                     mMenu.DataRecieved = RecievedData.None;
                     Debug.Print("Set Menu to Adjust Background Color...");
-                    mMenu.MenuSelection = MenuSelection.ChangeBackgroundColor;
+                    mMenu.MenuSelection = MenuSelection.ChangeBackLightColor;
                     break;
                 case MenuSelection.ViewNetworkInfo:
                     mMenu.DataRecieved = RecievedData.None;
