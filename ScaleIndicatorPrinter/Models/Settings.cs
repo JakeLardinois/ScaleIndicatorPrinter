@@ -12,7 +12,7 @@ namespace ScaleIndicatorPrinter.Models
 {
     public class Settings
     {
-        private SDCard.SDCard mSDCard { get; set; }
+        private SDCardManager mSDCard { get; set; }
 
         public string LabelFormatFileName { get; private set; }
         public string LabelFormat { get; set; }
@@ -206,8 +206,7 @@ namespace ScaleIndicatorPrinter.Models
         public void RetrieveSettingsFromSDCard(string DirectoryPath, string labelformatfilename, string jobnumberfilename, string operationfilename,
             string shoptraktransactionsurlfilename, string pieceweightfilename, string netweightadjustmentfilename, string backlightcolorfilename)
         {
-            mSDCard = new SDCard.SDCard();
-            mSDCard.WorkingDirectoryInfo = new System.IO.DirectoryInfo(DirectoryPath);
+            mSDCard = new SDCardManager(DirectoryPath);
 
             LabelFormatFileName = labelformatfilename;
             if (File.Exists(mSDCard.GetWorkingDirectoryPath() + LabelFormatFileName))

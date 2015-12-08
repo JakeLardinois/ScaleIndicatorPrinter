@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Net;
 using System.IO;
-using System.Threading;
-using Microsoft.SPOT;
-using Microsoft.SPOT.Hardware;
-using SecretLabs.NETMF.Hardware;
 using System.Net.Sockets;
 using System.Text;
+
+
 
 namespace SDCard
 {
@@ -21,14 +19,20 @@ namespace SDCard
         public static Object SDCardLock = new Object();
         public const string MountDirectoryPath = @"\SD";
 
-        private DirectoryInfo mWorkingDirectoryInfo { get; set; }
-        public DirectoryInfo WorkingDirectoryInfo {
-            get { return mWorkingDirectoryInfo; }
-            set {
-                var strPath = MountDirectoryPath + value;
-                CreateDirectory(strPath);
-                mWorkingDirectoryInfo = new DirectoryInfo(strPath);
-            } 
+        public SDCard()
+        {
+        }
+        public SDCard(string WorkingDirectory)
+        {
+            SetWorkingDirectoryInfo(WorkingDirectory);
+        }
+
+        public DirectoryInfo WorkingDirectoryInfo { get; set; }
+        public void SetWorkingDirectoryInfo(string WorkingDirectory)
+        {
+            var strPath = MountDirectoryPath + WorkingDirectory;
+            CreateDirectory(strPath);
+            WorkingDirectoryInfo = new DirectoryInfo(strPath);
         }
 
         public string GetWorkingDirectoryPath()
@@ -166,7 +170,7 @@ namespace SDCard
             return FileContents;
         }
 
-        public bool ReadInChunks(string fullPath, Socket socket)
+        public void SendFile(string fullPath, Socket socket)
         {
             ConsoleWrite.Print("Reading file: " + fullPath);
             bool chunkHasBeenRead = false;
@@ -200,7 +204,16 @@ namespace SDCard
                 ConsoleWrite.Print("Sending " + totalBytesRead.ToString() + " bytes...");
             else
                 ConsoleWrite.Print("Failed to read chunk, full path: " + fullPath);
-            return chunkHasBeenRead;
+            //return chunkHasBeenRead;
+        }
+
+        const int _PostRxBufferSize = 1500;
+        public byte[] GetMoreBytes(Socket connectionSocket, out int count)
+        {
+            byte[] result = new byte[_PostRxBufferSize];
+            SocketFlags socketFlags = new SocketFlags();
+            count = connectionSocket.Receive(result, result.Length, socketFlags);
+            return result;
         }
 
         public static string Replace(string input, char[] oldText, string newText)

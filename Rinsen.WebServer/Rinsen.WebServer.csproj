@@ -91,9 +91,5 @@
       <Project>{5995FC6C-A484-4A48-A75B-00B35F08F092}</Project>
       <Name>Json.NetMF</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SDCard\SDCard.csproj">
-      <Project>{0BEA7B28-F1A7-48BB-B04C-1C3FB3A45164}</Project>
-      <Name>SDCard</Name>
-    </ProjectReference>
   </ItemGroup>
 </Project>

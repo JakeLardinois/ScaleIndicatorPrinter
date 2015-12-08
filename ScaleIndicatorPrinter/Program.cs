@@ -34,7 +34,8 @@ namespace ScaleIndicatorPrinter
         private static InterruptPort btnBoard { get; set; }
         private static OutputPort onboardLED = new OutputPort(Pins.ONBOARD_LED, false);
         private static InterruptPort btnShield { get; set; }
-        
+        public const string WORKINGDIRECTORY = @"\WWW";
+
 
         public static void Main()
         {
@@ -85,9 +86,11 @@ namespace ScaleIndicatorPrinter
                 // write your code here
                 var webServer = new WebServer();
                 webServer.AddRequestFilter(new RequestFilter());
-                webServer.SetFileAndDirectoryService(new FileAndDirectoryService());
+                var fileAndDirectoryService = new FileAndDirectoryService();
+                fileAndDirectoryService.SetSDCard(new SDCardManager(WORKINGDIRECTORY));
+                webServer.SetFileAndDirectoryService(fileAndDirectoryService);
                 /*Setting a default controller removes the ability to browse the files and folder of the root web directory*/
-                //webServer.RouteTable.DefaultControllerName = "Scale"; 
+                //webServer.RouteTable.DefaultControllerName = "Scale";
                 webServer.StartServer(80);//If port is not specified, then default is port 8500
 
                 //Display appropriate information to the user...

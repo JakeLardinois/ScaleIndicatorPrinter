@@ -80,9 +80,9 @@ namespace ScaleIndicatorPrinter.Controllers
 
 
             if (formCollection.ContainsKey("BacklightColor") && formCollection.ContainsKey("NetWeightAdjustment") && formCollection.ContainsKey("PieceWeight") && formCollection.ContainsKey("ShopTrakTransactionsURL"))
-                SetJsonResult(new JsonResult { Success = true, Message = "The Results have been successfully saved!" });
+                SetJsonResult(new Result { Success = true, Message = "The Results have been successfully saved!" });
             else
-                SetJsonResult(new JsonResult { Success = false, Message = "Failed to save the results..." });
+                SetJsonResult(new Result { Success = false, Message = "Failed to save the results..." });
         }
     }
 }

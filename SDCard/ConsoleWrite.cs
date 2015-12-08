@@ -1,7 +1,6 @@
 using System;
 using Microsoft.SPOT;
 
-
 namespace SDCard
 {
     public class ConsoleWrite  // todo this should be moved to a general library.
@@ -11,10 +10,10 @@ namespace SDCard
 
         public static void Print(string message)
         {
-//            lock (_PrintLock)
-//            {
-////                Debug.Print(message);
-//            }
+            lock (_PrintLock)
+            {
+                Debug.Print(message);
+            }
         }
 
         public static uint MemoryCollect(bool force)

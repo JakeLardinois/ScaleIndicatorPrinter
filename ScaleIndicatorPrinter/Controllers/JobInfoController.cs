@@ -17,9 +17,9 @@ namespace ScaleIndicatorPrinter.Controllers
                 Debug.Print("Got some form data!");
 
             if (formCollection.ContainsKey("Job") && formCollection.ContainsKey("Suffix") && formCollection.ContainsKey("Operation"))
-                SetJsonResult(new JsonResult { Success = true, Message = "The Job Info has been successfully saved!" });
+                SetJsonResult(new Result { Success = true, Message = "The Job Info has been successfully saved!" });
             else
-                SetJsonResult(new JsonResult { Success = false, Message = "Failed to save the Job Info..." });
+                SetJsonResult(new Result { Success = false, Message = "Failed to save the Job Info..." });
         }
     }
 }
