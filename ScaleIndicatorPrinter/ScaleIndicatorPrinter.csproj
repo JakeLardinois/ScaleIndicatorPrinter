@@ -33,7 +33,6 @@
   </PropertyGroup>
   <Import Project="$(NetMfTargetsBaseDir)$(TargetFrameworkVersion)\CSharp.Targets" />
   <ItemGroup>
-    <Compile Include="Controllers\DefaultController.cs" />
     <Compile Include="Controllers\FilesController.cs" />
     <Compile Include="Controllers\JobInfoController.cs" />
     <Compile Include="Controllers\LabelController.cs" />

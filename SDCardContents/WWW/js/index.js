@@ -1,5 +1,5 @@
 var intMessageFadeTimeout = 10000;
-var sSettingsURL = 'Default/Settings';
+var sSettingsURL = 'Scale/Settings';
 var sUpdateLabelURL = '/Label/Update';
 var sUpdateJobInfolURL = '/JobInfo/Update';
 var sUpdateScaleInfoURL = '/Scale/Update';

@@ -86,7 +86,8 @@ namespace ScaleIndicatorPrinter
                 var webServer = new WebServer();
                 webServer.AddRequestFilter(new RequestFilter());
                 webServer.SetFileAndDirectoryService(new FileAndDirectoryService());
-                webServer.RouteTable.DefaultControllerName = "Default";
+                /*Setting a default controller removes the ability to browse the files and folder of the root web directory*/
+                //webServer.RouteTable.DefaultControllerName = "Scale"; 
                 webServer.StartServer(80);//If port is not specified, then default is port 8500
 
                 //Display appropriate information to the user...
