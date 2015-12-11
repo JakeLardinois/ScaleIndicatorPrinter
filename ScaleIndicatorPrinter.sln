@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rinsen.WebServer", "Rinsen.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rinsen.WebServer.FileAndDirectoryServer", "Rinsen.WebServer.FileAndDirectoryServer\Rinsen.WebServer.FileAndDirectoryServer.csproj", "{1D224CF4-2802-4B08-8078-4F300C0775F5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDCard", "SDCard\SDCard.csproj", "{0BEA7B28-F1A7-48BB-B04C-1C3FB3A45164}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetduinoSDCard", "NetduinoSDCard\NetduinoSDCard.csproj", "{66F7DA1E-2931-4E24-81F7-471B08488B96}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,10 +49,12 @@ Global
 		{1D224CF4-2802-4B08-8078-4F300C0775F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1D224CF4-2802-4B08-8078-4F300C0775F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1D224CF4-2802-4B08-8078-4F300C0775F5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0BEA7B28-F1A7-48BB-B04C-1C3FB3A45164}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0BEA7B28-F1A7-48BB-B04C-1C3FB3A45164}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0BEA7B28-F1A7-48BB-B04C-1C3FB3A45164}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0BEA7B28-F1A7-48BB-B04C-1C3FB3A45164}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66F7DA1E-2931-4E24-81F7-471B08488B96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66F7DA1E-2931-4E24-81F7-471B08488B96}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66F7DA1E-2931-4E24-81F7-471B08488B96}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{66F7DA1E-2931-4E24-81F7-471B08488B96}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66F7DA1E-2931-4E24-81F7-471B08488B96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66F7DA1E-2931-4E24-81F7-471B08488B96}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -11,7 +11,7 @@ namespace ScaleIndicatorPrinter.Controllers
     {
         public void Index()
         {
-            var SDCard = new SDCard.SDCard();
+            var SDCard = new NetduinoSDCard.SDCard();
             string strHTML = string.Empty;
 
 

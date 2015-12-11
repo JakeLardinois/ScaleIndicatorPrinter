@@ -6,7 +6,7 @@ using Rinsen.WebServer.FileAndDirectoryServer;
 
 namespace ScaleIndicatorPrinter.Models
 {
-    public class SDCardManager: SDCard.SDCard, ISDCard
+    public class SDCardManager : NetduinoSDCard.SDCard, ISDCardManager
     {
         public SDCardManager(string WorkingDirectory)
             : base(WorkingDirectory)

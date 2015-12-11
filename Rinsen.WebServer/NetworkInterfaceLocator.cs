@@ -4,7 +4,6 @@ using System.Net;
 using Microsoft.SPOT.Net.NetworkInformation;
 using Rinsen.WebServer.Extensions;
 
-
 namespace Rinsen.WebServer
 {
     internal class NetworkInterfaceLocator

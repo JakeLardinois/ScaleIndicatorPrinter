@@ -1,7 +1,7 @@
 using System;
 using Microsoft.SPOT;
 
-namespace SDCard
+namespace NetduinoSDCard
 {
     public class ConsoleWrite  // todo this should be moved to a general library.
     {

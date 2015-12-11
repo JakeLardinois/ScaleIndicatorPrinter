@@ -33,11 +33,11 @@ namespace ScaleIndicatorPrinter.Controllers
         {
             this.SDCardManager = new SDCardManager(Program.WORKINGDIRECTORY);
             Debug.Print("got it");
-            if (HttpContext.Request.Method == "POST")
+            if (HttpContext.Request.Method == HTTPMethod.Post)
             {
                 Debug.Print("phase II");
-                var doFileUpload = RecieveFile();
-                SetJsonResult(new Result { Success = true, Message = doFileUpload }); ;
+                var doFileUpload = RecieveFiles();
+                SetJsonResult(new Result { Success = true, Message = "Got Them!" }); ;
             }
         }
 

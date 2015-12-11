@@ -90,6 +90,10 @@
       <Project>{0ECB7448-96F9-4D13-A200-04BD5BF3AA7E}</Project>
       <Name>NetduinoRGBLCDShield</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NetduinoSDCard\NetduinoSDCard.csproj">
+      <Project>{66F7DA1E-2931-4E24-81F7-471B08488B96}</Project>
+      <Name>NetduinoSDCard</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NetMf.CommonExtensions\NetMf.CommonExtensions.csproj">
       <Project>{58F72289-F396-4CCA-8120-B7179C05FF99}</Project>
       <Name>NetMf.CommonExtensions</Name>
@@ -101,10 +105,6 @@
     <ProjectReference Include="..\Rinsen.WebServer\Rinsen.WebServer.csproj">
       <Project>{6BFC7545-24EF-4C5B-9EDE-3EC99CDB86E4}</Project>
       <Name>Rinsen.WebServer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SDCard\SDCard.csproj">
-      <Project>{0BEA7B28-F1A7-48BB-B04C-1C3FB3A45164}</Project>
-      <Name>SDCard</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

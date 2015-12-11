@@ -7,9 +7,6 @@ using System.Text;
 using Rinsen.WebServer.Collections;
 using Rinsen.WebServer.Extensions;
 
-using System.Collections;
-using System.Text.RegularExpressions;
-
 namespace Rinsen.WebServer
 {
     public class Controller : IController
@@ -24,18 +21,17 @@ namespace Rinsen.WebServer
             JsonSerializer = jsonSerializer;
             _modelFactory = modelFactory;
         }
-
+        
         public void SetHtmlResult(string data)
         {
-            HttpContext.Response.ContentType = "text/html";
+            HttpContext.Response.ContentType = new ContentType { MainContentType = EnumMainContentType.Text, SubContentType = EnumSubContentType.Html };
             HttpContext.Response.Data = data;
         }
 
         public void SetJsonResult(object objectToSerialize)
         {
-            HttpContext.Response.ContentType = "application/json";
-            //HttpContext.Response.Data = JsonSerializer.Serialize(objectToSerialize);
-            HttpContext.Response.Data = Json.NETMF.JsonSerializer.SerializeObject(objectToSerialize);
+            HttpContext.Response.ContentType = new ContentType { MainContentType = EnumMainContentType.Application, SubContentType = EnumSubContentType.Json };
+            HttpContext.Response.Data = JsonSerializer.Serialize(objectToSerialize);
         }
 
         /// <summary>
@@ -44,11 +40,11 @@ namespace Rinsen.WebServer
         /// <returns></returns>
         public FormCollection GetFormCollection()
         {
-            if (HttpContext.Request.Method == "GET")
+            if (HttpContext.Request.Method == HTTPMethod.Get)
             {
                 return new FormCollection(HttpContext.Request.Uri.QueryString);    
             }
-            else if (HttpContext.Request.Method == "POST")
+            else if (HttpContext.Request.Method == HTTPMethod.Post)
             {
                 var socket = HttpContext.Socket;
                 var buffer = new byte[2048];
@@ -121,6 +117,5 @@ namespace Rinsen.WebServer
 	            }
 	        }
         }
-
     }
 }

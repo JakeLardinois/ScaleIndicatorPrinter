@@ -49,10 +49,9 @@ namespace Rinsen.WebServer
                     throw new EntityToLargeException("Header entity is to large (HTTP413)");
                 }
 
-
                 if (!requestLineSet)
                 {
-                    if (headerString == null || headerString == string.Empty)
+                    if (headerString == null  || headerString == string.Empty)
                     {
                         throw new ArgumentNullException("Request does not contain any data");
                     }

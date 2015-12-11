@@ -87,11 +87,12 @@ namespace ScaleIndicatorPrinter
                 var webServer = new WebServer();
                 webServer.AddRequestFilter(new RequestFilter());
                 var fileAndDirectoryService = new FileAndDirectoryService();
-                fileAndDirectoryService.SetSDCard(new SDCardManager(WORKINGDIRECTORY));
+                fileAndDirectoryService.SetSDCardManager(new SDCardManager(WORKINGDIRECTORY));
                 webServer.SetFileAndDirectoryService(fileAndDirectoryService);
                 /*Setting a default controller removes the ability to browse the files and folder of the root web directory*/
                 //webServer.RouteTable.DefaultControllerName = "Scale";
                 webServer.StartServer(80);//If port is not specified, then default is port 8500
+                webServer.SetHostName("Cart Scale");
 
                 //Display appropriate information to the user...
                 mMenu.DisplayInformation(Settings);

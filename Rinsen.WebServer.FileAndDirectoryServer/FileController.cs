@@ -4,119 +4,168 @@ using Microsoft.SPOT;
 using System.Collections;
 using System.Text.RegularExpressions;
 using System.Text;
+using Rinsen.WebServer.Collections;
+using Rinsen.WebServer.Extensions;
+
 
 namespace Rinsen.WebServer.FileAndDirectoryServer
 {
     public class FileController : Controller
     {
-        public ISDCard SDCardManager { get; set; }
+        public ISDCardManager SDCardManager { get; set; }
+        //private const int _PostRxBufferSize = 1500;
 
-        public string RecieveFile()
+        public FormCollection RecieveFiles()
         {
             var request = HttpContext.Request;
-            Hashtable formVariables = new Hashtable();
-            if (request.RequestType == EnumRequestType.Post)
+
+
+
+            if (request.Method == HTTPMethod.Post &&
+                request.ContentType.MainContentType == EnumMainContentType.MultiPart &&
+                request.ContentType.SubContentType == EnumSubContentType.FormData)
             {
+                var contentLengthFromHeader = int.Parse(request.Headers["Content-Length"].ToString());
+                var contentLengthReceived = 0;
+                var PostedData = new FormCollection();
+                var socket = HttpContext.Socket;
+                var allDataRecieved = false;
+                var receivedByteCount = 0;
+                var buffer = new byte[2048]; //The size of this array essentially sets the read rate...
+                var fileDirectoryPath = SDCardManager.GetWorkingDirectoryPath();
+                var boundaryBytes = Encoding.UTF8.GetBytes(request.Boundary);
+                var BeginningboundaryBytes = Encoding.UTF8.GetBytes("\r\n-----");
+                var strBldrBoundaryHeader = new StringBuilder();
+                var strBldrBoundaryData = new StringBuilder();
+                StringBuilder strBldr = new StringBuilder();
+                var BoundaryDataSeparator = Encoding.UTF8.GetBytes("\r\n\r\n"); //a double newline delimits Boundary Headers from Boundary Data...
+                var BoundaryDataIndex = 0;
+                Regex rx = new Regex("([^=\\s]+)=\"([^\"]*)\""); //matches key value pairs like the below...
+                //var Value = "key1=\"value1\" key2=\"value 2\" key3=\"value3\" key4=\"value4\" key5=\"5555\" key6=\"xxx666\"";
 
-                // This form should be short so get it all data now, in one go.
-                // assume no content sent with first packet todo fix
-                int contentLengthFromHeader = int.Parse(request.Headers["Content-Length"].ToString());
-                int contentLengthReceived = 0;
-                string requestContent = "";
-                string fileName = "";
-                string boundaryPattern = "";
-                string fileDirectoryPath = SDCardManager.GetWorkingDirectoryPath();
+
+                Debug.Print("Boundary is: " + request.Boundary); //The Boundary property will be populated if it is multipart/form-data
+                Debug.Print("Reading Bytes...");
+                socket.ReceiveUntil(buffer, boundaryBytes, out receivedByteCount, true); //Discard the first Boundary Read...
+
+                while (!allDataRecieved)
                 {
-                    if (contentLengthReceived < contentLengthFromHeader)// get next packet, this should have the start of any file in it. // todo put timeout
-                    {
-                        int count = 0;
-                        byte[] data = SDCardManager.GetMoreBytes(HttpContext.Socket, out count);
-                        requestContent += new string(Encoding.UTF8.GetChars(data, contentLengthReceived, count));
-                        contentLengthReceived += count;
-                    }
+                    contentLengthReceived += receivedByteCount;
+                    Debug.Print("Bytes Read: " + receivedByteCount +
+                    "\r\nTotal Bytes Read: " + contentLengthReceived +
+                    "\r\nTotal Bytes To Read: " + contentLengthFromHeader);
 
-                    string strTemp = request.Headers["Content-Type"].Split(new char[] { ';' })[1].Split(new char[] { '=' })[1].ToString();
-                    var ContentType = request.Headers["Content-Type"]; //will have a value like "multipart/form-data; boundary=---------------------------2261521032598"
-                    var boundarystring = ContentType.Split(new char[] { ';' })[1]; //gives me " boundary=---------------------------2261521032598"
-                    string boundary = boundarystring.Split(new char[] { '=' })[1].ToString(); //gives me "---------------------------2261521032598"
-                    //                int nextBoundaryIndex = requestContent.IndexOf(boundary);// todo boundaries can change
-                    boundaryPattern = "--" + boundary;//"#\n\n(.*)\n--$boundary#"
-                    Regex MyRegex = new Regex(boundaryPattern, RegexOptions.Multiline);
-                    string[] split = MyRegex.Split(requestContent);
-                    for (int i = 0; i < split.Length; i++)
+                    if (contentLengthReceived < contentLengthFromHeader)
                     {
-                        const string _ContentDispositionSearch = "Content-Disposition: form-data; name=\"";
-                        int pos = split[i].IndexOf(_ContentDispositionSearch);
-                        if (pos >= 0)
+                        Debug.Print("Reading Bytes...");
+                        socket.ReceiveUntil(buffer, boundaryBytes, out receivedByteCount, true);
+                        BoundaryDataIndex = buffer.IndexOf(BoundaryDataSeparator);
+                        //Debug.Print("Boundary Data Index: " + BoundaryDataIndex);
+
+                        /*The end of the  multipart form is denoted by the boundary data followed by -- and a Carriage Return Line Feed (ex -----------------------------42291685921978--)
+                         * Since I read until the the Boundary Data, I loop until only those characters are found; I do a check for null bytes just to make sure.*/
+                        if (buffer.IndexOf(Encoding.UTF8.GetBytes("--\r\n")) == 0 && buffer[5] == default(byte))
                         {
-                            string remainder = split[i].Substring(pos + _ContentDispositionSearch.Length);
-                            //                        ConsoleWrite.Print(remainder);
-                            string[] nameSplit = remainder.Split(new char[] { '\"' }, 2);
-                            string name = nameSplit[0];
-                            if (nameSplit[1][0] == ';')
-                            {// file
-                                int fileDataSeparatorIndex = nameSplit[1].IndexOf("\r\n\r\n"); // "\r\n\r\n" data starts after double new line
-                                if (fileDataSeparatorIndex >= 0)
-                                {
-                                    string fileNameSection = nameSplit[1].Substring(0, fileDataSeparatorIndex);
-                                    string[] fileNameSplit = fileNameSection.Split(new char[] { '\"' });
-                                    formVariables.Add("fileName", fileNameSplit[1]);
-                                    fileName = fileNameSplit[1];
-                                    string fileDataPart1 = nameSplit[1].Substring(fileDataSeparatorIndex + 4);
-                                    SDCardManager.Write(fileDirectoryPath, fileName, System.IO.FileMode.Create, fileDataPart1);
-                                }
-                            }
+                            Debug.Print("You've reached the end of the multipart form! ");
+                            continue;
+                        }
+
+                        strBldrBoundaryHeader.Clear();
+                        strBldrBoundaryHeader.Append(Encoding.UTF8.GetChars(buffer.SubArray(0, BoundaryDataIndex + 1)));
+                        //Debug.Print("Boundary Header: \r\n" + strBldrBoundaryHeader.ToString().ToString().Trim());
+
+                        var objBoundaryHeaderCollection = new BoundaryHeaderCollection(strBldrBoundaryHeader.ToString());
+
+                        strBldr.Clear();
+                        strBldr.Append(objBoundaryHeaderCollection["Content-Disposition".ToLower()]); //I store all keys in lowercase...
+                        //Debug.Print("Content-Disposition Value: " + strBldr);
+                        var KeyValuePairs = new Hashtable();
+                        foreach (Match m in rx.Matches(strBldr.ToString()))
+                        {
+                            Debug.Print("Found KeyValue Pair:" +
+                                "\r\n\tKey: " + m.Groups[1] +
+                                "\r\n\tValue: " + m.Groups[2]);
+                            KeyValuePairs.Add(m.Groups[1].ToString().ToLower(), m.Groups[2]);
+
+                        }
+                            
+                        
+                        if (objBoundaryHeaderCollection.Contains("Content-Type".ToLower()))//write Boundary Data to File...
+                        {
+                            strBldr.Clear();//Get the value portion of the Content-Type Boundary Header
+                            strBldr.Append(objBoundaryHeaderCollection["Content-Type".ToLower()]); //I store all keys in lowercase...
+                            Debug.Print("I've got a file and the Content-Type is: " + strBldr.ToString());
+
+                            //Get the file's name from the KeyValuePairs...
+                            string fileName = string.Empty;
+                            if (KeyValuePairs.Contains("filename")) //JQuery ajax post (from <input type="file">) sends filename parameter containing file's name; the name property is left as defined in the html.
+                                fileName = KeyValuePairs["filename"].ToString();
+                            else if (KeyValuePairs.Contains("name")) //Form Post sends name parameter containing file's name (no filename parameter is sent)
+                                fileName = KeyValuePairs["name"].ToString();
                             else
-                            {// normal form variable
-                                StringBuilder value = new StringBuilder(nameSplit[1]);
-                                value = value.Replace("\r", "").Replace("\n", "").Replace("/", "\\");
-                                if (nameSplit[0] == "path")
+                                fileName = "Unknown.txt";
+                            Debug.Print("File name is set to: " + fileName);
+
+
+                            
+                            if (buffer.IndexOf(boundaryBytes) == -1) //Write to file, loop to get remaining file data
+                            {
+                                var BoundaryData = buffer.SubArray(BoundaryDataIndex + BoundaryDataSeparator.Length, receivedByteCount - BoundaryDataIndex - BoundaryDataSeparator.Length);
+                                var intTemp = receivedByteCount;
+                                SDCardManager.Write(fileDirectoryPath, fileName, System.IO.FileMode.Create, BoundaryData, BoundaryData.Length);
+                                while (buffer.IndexOf(boundaryBytes) == -1)  //boundary hasn't been reached, get more data...
                                 {
-                                    fileDirectoryPath = SDCardManager.GetWorkingDirectoryPath() + value + "\\";
+                                    Debug.Print("Getting more File data...");
+                                    socket.ReceiveUntil(buffer, boundaryBytes, out receivedByteCount, true);
+                                    if (buffer.IndexOf(boundaryBytes) != -1)//remove boundary string here before you have written to a file...
+                                    {
+                                        var intBeginningBoundaryBytesIndex = buffer.IndexOf(BeginningboundaryBytes);
+                                        var Data = buffer.SubArray(0, intBeginningBoundaryBytesIndex);
+                                        SDCardManager.Write(fileDirectoryPath, fileName, System.IO.FileMode.Append, Data, Data.Length);
+                                    }
+                                    else
+                                        SDCardManager.Write(fileDirectoryPath, fileName, System.IO.FileMode.Append, buffer, receivedByteCount);
+                                    intTemp += receivedByteCount;
+                                    Debug.Print("Iterated a loop and Recieved: " + receivedByteCount + " Bytes...");
                                 }
-                                formVariables.Add(nameSplit[0], value);
-
-
+                                
+                                receivedByteCount = intTemp;
+                            }
+                            else //remove boundary string, write to file and exit...
+                            {
+                                var BoundaryData = buffer.SubArray(BoundaryDataIndex + BoundaryDataSeparator.Length, receivedByteCount - BoundaryDataIndex - BoundaryDataSeparator.Length + 1);
+                                var intBeginningBoundaryBytesIndex = BoundaryData.IndexOf(BeginningboundaryBytes);
+                                var Data = BoundaryData.SubArray(0, intBeginningBoundaryBytesIndex);
+                                SDCardManager.Write(fileDirectoryPath, fileName, System.IO.FileMode.Append, Data, Data.Length);
                             }
                         }
-
-                    }
-                }
-
-                // get the rest of the file and send to sd card
-                if (fileName.Length > 0)// todo what other checks
-                {
-                    while (contentLengthReceived < contentLengthFromHeader)// get next packet, this should have the start of any file in it. // todo put timeout
-                    {
-                        byte[] data = null;
-                        int count = 0;
+                        else //add the 'name' value and BoundaryData to the PostedData FormCollection object...
                         {
-                            data = SDCardManager.GetMoreBytes(HttpContext.Socket, out count);
-                            contentLengthReceived += count;
-                            //requestContent = new string(Encoding.UTF8.GetChars(data, 0, count));
+                            strBldrBoundaryData.Clear();
+                            strBldrBoundaryData.Append(Encoding.UTF8.GetChars(buffer.SubArray(BoundaryDataIndex + BoundaryDataSeparator.Length, buffer.Length - BoundaryDataIndex - BoundaryDataSeparator.Length)));
+                            //Debug.Print("Boundary Data: \r\n" + strBldrBoundaryData.ToString());
+
+                            var strBoundaryData = strBldrBoundaryData.ToString();
+                            if (KeyValuePairs.Contains("name"))
+                                PostedData.AddValue(KeyValuePairs["name"].ToString(), strBoundaryData.Substring(0, strBoundaryData.IndexOf('\n')));
+                            Debug.Print("Added Key/Value Pair to PostedData FormCollection...");
                         }
-                        //ConsoleWrite.CollectMemoryAndPrint(true, System.Threading.Thread.CurrentThread.ManagedThreadId);
-                        int boundaryPosition = requestContent.IndexOf(boundaryPattern);
-                        if (boundaryPosition < 0)
-                        {// no boundary so write all the bytes
-                            SDCardManager.Write(fileDirectoryPath, fileName, System.IO.FileMode.Append, data, count);
-                        }
-                        else
-                        {//  boundary so write some of the bytes via a string
-                            string fileContent = requestContent.Substring(0, boundaryPosition);
-                            SDCardManager.Write(fileDirectoryPath, fileName, System.IO.FileMode.Append, fileContent);
-                        }
-                        // todo other params following
+
+
+                        
+
+                        //var data = socket.GetMoreBytes(2048, out receivedByteCount);
+                        //SDCardManager.Write(fileDirectoryPath, "Test.txt", System.IO.FileMode.Append, data, receivedByteCount);                  
 
                     }
+                    else
+                        allDataRecieved = true;
                 }
 
+                return PostedData;
             }
-            string message = string.Empty;
-            foreach (string key in formVariables.Keys)
-                message += "<p>" + key + ": " + formVariables[key].ToString() + "</p>";
 
-            return message;
+            throw new NotSupportedException("Only POST is supported");
         }
     }
 }

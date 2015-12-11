@@ -1,12 +1,10 @@
-﻿using System;
+using System;
 using System.Net;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
 
-
-
-namespace SDCard
+namespace NetduinoSDCard
 {
     public delegate void BytesDelegate(byte[] data);
 
@@ -67,7 +65,7 @@ namespace SDCard
 
         public static string GetFullPathFromUri(string uri)
         {
-            return MountDirectoryPath + PathToBackSlash(uri); 
+            return MountDirectoryPath + PathToBackSlash(uri);
         }
 
         public void CreateFile(string path, string fileName)// needs trailing slash
@@ -132,7 +130,7 @@ namespace SDCard
                     fs.Write(buf, 0, buf.Length);
                 }
                 fs.Close();
-           }
+            }
             return true;
         }
         //http://forums.netduino.com/index.php?/topic/2394-memory-efficient-way-to-enumerate-an-array-of-fileinfo/page__p__16985__hl__%2Bsdcard+%2Benumerate__fromsearch__1#entry16985
@@ -204,16 +202,6 @@ namespace SDCard
                 ConsoleWrite.Print("Sending " + totalBytesRead.ToString() + " bytes...");
             else
                 ConsoleWrite.Print("Failed to read chunk, full path: " + fullPath);
-            //return chunkHasBeenRead;
-        }
-
-        const int _PostRxBufferSize = 1500;
-        public byte[] GetMoreBytes(Socket connectionSocket, out int count)
-        {
-            byte[] result = new byte[_PostRxBufferSize];
-            SocketFlags socketFlags = new SocketFlags();
-            count = connectionSocket.Receive(result, result.Length, socketFlags);
-            return result;
         }
 
         public static string Replace(string input, char[] oldText, string newText)
@@ -224,7 +212,7 @@ namespace SDCard
             {
                 result += split[i] + newText;
             }
-            result += split[split.Length-1];
+            result += split[split.Length - 1];
             return result;
         }
 
@@ -237,7 +225,7 @@ namespace SDCard
         public long GetFileSize(string directoryPath, string fileName)
         {
             long result = 0;
-//            ConsoleWrite.Print("Get File Size: " + fileNameAndPath);
+            //            ConsoleWrite.Print("Get File Size: " + fileNameAndPath);
             lock (SDCardLock)
             {
                 string fileNameAndPath = GetFileFullPath(directoryPath, fileName);
@@ -258,12 +246,9 @@ namespace SDCard
         {
             int lastIndexOf = fileNameAndPath.LastIndexOf('\\');
             string directoryName = fileNameAndPath.Substring(0, lastIndexOf);
-            string fileName = fileNameAndPath.Substring(lastIndexOf+1);
+            string fileName = fileNameAndPath.Substring(lastIndexOf + 1);
             return GetFileSize(directoryName, fileName);
         }
 
     }
-
-
 }
-
