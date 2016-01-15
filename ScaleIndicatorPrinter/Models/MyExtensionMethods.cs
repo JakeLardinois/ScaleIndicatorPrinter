@@ -80,23 +80,23 @@ namespace ScaleIndicatorPrinter.Models
 
         public static BacklightColor GetBackLightColor(this string source)
         {
-            switch (source)
+            switch (source.ToUpper())
             {
-                case "Off":
+                case "OFF":
                     return BacklightColor.Off;
-                case "Red":
+                case "RED":
                     return BacklightColor.Red;
-                case "Yellow":
+                case "YELLOW":
                     return BacklightColor.Yellow;
-                case "Green":
+                case "GREEN":
                     return BacklightColor.Green;
-                case "Teal":
+                case "TEAL":
                     return BacklightColor.Teal;
-                case "Blue":
+                case "BLUE":
                     return BacklightColor.Blue;
-                case "Violet":
+                case "VIOLET":
                     return BacklightColor.Violet;
-                case "White":
+                case "WHITE":
                     return BacklightColor.White;
                 default:
                     return BacklightColor.Off;

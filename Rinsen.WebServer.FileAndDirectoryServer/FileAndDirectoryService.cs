@@ -75,6 +75,7 @@ namespace Rinsen.WebServer.FileAndDirectoryServer
         {
             var directoryPath = serverContext.FileServerBasePath + httpContext.Request.Uri.LocalPath;
 
+            Debug.Print(directoryPath);
             DirectoryInfo rootDirectory = new DirectoryInfo(directoryPath);
             if (rootDirectory.Exists)
             {
@@ -95,7 +96,7 @@ namespace Rinsen.WebServer.FileAndDirectoryServer
             Debug.Print("Setting File Services Base Path..." + "\r\nHas an SDCard Manager: " + HasSDCardManager);
             if (HasSDCardManager)
             {
-                basePath = SDCardManager.GetWorkingDirectoryPath();
+                basePath = SDCardManager.GetWorkingDirectoryPath().TrimEnd(new char[] { '\\'});
                 Debug.Print("Base path is: " + basePath);
                 return basePath;
             }

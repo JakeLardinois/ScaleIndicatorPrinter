@@ -349,5 +349,30 @@ namespace ScaleIndicatorPrinter.Models
             Debug.Print("Wrote contents: \r\n" + FileContents + "\r\nTo File: " + FilePathAndName);
             Debug.Print("Finished Write...");
         }
+
+        public static string GetFileUploadHTML(string UploadURL)
+        {
+            var strHead = @"<!DOCTYPE html>
+                            <html>
+                            <head>
+                                <meta charset=""utf-8"" />
+                                <title>Default File Upload Form</title>
+                            </head>
+                            <body>";
+            var strForm = @"<form method=""POST"" enctype=""multipart/form-data"" action=""" + UploadURL + @""">
+                                <label for=""path"">Remote Path</label>
+                                <input type=""text"" name=""path"" id=""path"">
+                                <br />
+                                <input type=""file"" name=""upfile"" id=""upfile"">
+                                <br />
+                                <input type=""submit"" name=""btnUpload"" id=""btnUpload"" value=""Upload File"">
+                            <br>
+                        </form>";
+
+            var strFoot = @"</body>
+                        </html>";
+
+            return strHead + strForm + strFoot;
+        }
     }
 }

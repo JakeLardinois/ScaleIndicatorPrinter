@@ -3,6 +3,7 @@ using System.Net;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
+using Microsoft.SPOT;
 
 namespace NetduinoSDCard
 {
@@ -28,7 +29,13 @@ namespace NetduinoSDCard
         public DirectoryInfo WorkingDirectoryInfo { get; set; }
         public void SetWorkingDirectoryInfo(string WorkingDirectory)
         {
-            var strPath = MountDirectoryPath + WorkingDirectory;
+            string strPath = string.Empty;
+
+            if (WorkingDirectory.LastIndexOf("\\") == WorkingDirectory.Length - 1)
+                strPath = MountDirectoryPath + WorkingDirectory;
+            else
+                strPath = MountDirectoryPath + WorkingDirectory + "\\";
+            Debug.Print("Working Directory: " + strPath);
             CreateDirectory(strPath);
             WorkingDirectoryInfo = new DirectoryInfo(strPath);
         }

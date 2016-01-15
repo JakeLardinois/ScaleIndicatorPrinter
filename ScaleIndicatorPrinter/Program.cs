@@ -62,7 +62,7 @@ namespace ScaleIndicatorPrinter
                 Settings = new Settings();
                 Settings.Increments = new double[] { .001, .01, .1, 1, 10, 100 };
                 Settings.IncrementSelection = 3;
-                Settings.RetrieveSettingsFromSDCard(@"\WWW\", "LabelFormat.txt", "Job.txt", "Operation.txt", "ShopTrakTransactionsURL.txt",
+                Settings.RetrieveSettingsFromSDCard(WORKINGDIRECTORY, "LabelFormat.txt", "Job.txt", "Operation.txt", "ShopTrakTransactionsURL.txt",
                     "PieceWeight.txt", "NetWeightAdjustment.txt", "BackgroundColor.txt");
 
                 mMenu.SetBackLightColor(Settings.BacklightColor);

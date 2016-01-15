@@ -1,3 +1,4 @@
+using Microsoft.SPOT;
 using System.IO;
 using System.Text;
 namespace Rinsen.WebServer.FileAndDirectoryServer
@@ -17,7 +18,17 @@ namespace Rinsen.WebServer.FileAndDirectoryServer
             htmlBuilder.Append("<html><head><title>" + hostName + " - " + rawUrl + "</title></head><body><H1>" + hostName + " - " + rawUrl + "</H1><hr><pre><A HREF=\"" + GetParentUrl(rawUrl) + "\">[To Parent Directory]</A><br><br>");
             foreach (var dir in directories)
             {
-                htmlBuilder.Append(dir.LastAccessTime.ToString() + "      &lt;dir&gt; <A HREF=\"" + rawUrl + "/" + dir.Name + "/" + "\" >" + dir.Name + "</A><br>");
+                try
+                {
+                    var strLastAccessTime = dir.LastAccessTime.ToString();
+                    htmlBuilder.Append(strLastAccessTime + "      &lt;dir&gt; <A HREF=\"" + rawUrl + "/" + dir.Name + "/" + "\" >" + dir.Name + "</A><br>");
+                }
+                catch
+                {
+                    Debug.Print(dir.Name + "Invalid Directory LastAccessTime...");
+                }
+
+                
                 counter++;
                 if (counter >= 5)
                     break;
